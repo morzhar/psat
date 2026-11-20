@@ -3,16 +3,16 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>PSAT 10 Math Тренажёр</title>
+<title>Pmath</title>
 <script src="https://telegram.org/js/telegram-web-app.js"></script>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-/* Layout idea: one phone-width column — score strip, filters, exam-paper question card, section progress. */
+/* Layout idea: phone-width column with a bottom tab bar — practice, timed test, textbook, calculators, settings. */
 :root{
   --bg:#eef1f6; --surface:#ffffff; --ink:#141a2a; --muted:#5f6a82; --line:#d6dbe6;
   --accent:#2747d6; --accent-ink:#ffffff; --accent-soft:#e4e9fb;
-  --good:#1c8a55; --good-soft:#e0f3e9; --bad:#c93a3a; --bad-soft:#fae6e6;
+  --good:#1c8a55; --good-soft:#e0f3e9; --warn:#a86a00; --warn-soft:#fbeed0; --bad:#c93a3a; --bad-soft:#fae6e6;
   --font-ui:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
   --font-q:"Spectral",Georgia,"Times New Roman",serif;
   color-scheme:light;
@@ -21,51 +21,58 @@
   :root:not([data-theme="light"]){
     --bg:#0f1320; --surface:#181e30; --ink:#e9ecf5; --muted:#98a2bb; --line:#2a3350;
     --accent:#7f96ff; --accent-ink:#0f1320; --accent-soft:#222b4d;
-    --good:#4cc38a; --good-soft:#163527; --bad:#f07171; --bad-soft:#3b1d22;
+    --good:#4cc38a; --good-soft:#163527; --warn:#f0b84a; --warn-soft:#3a2e12; --bad:#f07171; --bad-soft:#3b1d22;
     color-scheme:dark;
   }
 }
 :root[data-theme="dark"]{
   --bg:#0f1320; --surface:#181e30; --ink:#e9ecf5; --muted:#98a2bb; --line:#2a3350;
   --accent:#7f96ff; --accent-ink:#0f1320; --accent-soft:#222b4d;
-  --good:#4cc38a; --good-soft:#163527; --bad:#f07171; --bad-soft:#3b1d22;
+  --good:#4cc38a; --good-soft:#163527; --warn:#f0b84a; --warn-soft:#3a2e12; --bad:#f07171; --bad-soft:#3b1d22;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
-html,body{margin:0}
+html,body{margin:0;height:100%}
 body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.45}
-.app{max-width:480px;margin:0 auto;padding:18px 16px 32px;display:flex;flex-direction:column;gap:14px}
-header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+button{font:inherit;color:inherit}
+.app{max-width:520px;margin:0 auto;padding:14px 16px 84px;display:flex;flex-direction:column;gap:14px;min-height:100%}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px}
 h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
-header span{color:var(--muted);font-size:13px}
+h2{font-size:17px;font-weight:700;margin:0;text-wrap:balance}
+h3{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em;margin:0}
+p{margin:0}
+.view{display:flex;flex-direction:column;gap:14px}
 .strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
 .tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
 .tile b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
 .tile small{color:var(--muted);font-size:12px}
 .group{display:flex;flex-direction:column;gap:6px}
-.label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
 .chips{display:flex;flex-wrap:wrap;gap:6px}
-.chip{font:inherit;font-size:13.5px;font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip{font-size:13.5px;font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
-.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
-.seg button{font:inherit;font-size:13.5px;font-weight:500;padding:7px 4px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{font-size:13.5px;font-weight:500;padding:7px 4px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
 .seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
-button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+button:focus-visible,input:focus-visible,summary:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px}
 .meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
-.meta .tags{display:flex;gap:6px;flex-wrap:wrap}
+.meta .tags,.metaR{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
 .tag{padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-weight:600}
 .tag.lv{background:transparent;border:1px solid var(--line);color:var(--muted)}
-.timer{font-variant-numeric:tabular-nums;font-weight:600}
-.timer.over{color:var(--bad)}
+.tm{font-variant-numeric:tabular-nums;font-weight:700;padding:3px 9px;border-radius:999px;font-size:13px}
+.tm.ok{background:var(--good-soft);color:var(--good)}
+.tm.warn{background:var(--warn-soft);color:var(--warn)}
+.tm.over{background:var(--bad-soft);color:var(--bad)}
+.mini{font-size:12.5px;font-weight:600;padding:4px 10px;border-radius:999px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .q{font-family:var(--font-q);font-size:18.5px;line-height:1.5;text-wrap:pretty}
 .q .eq{display:block;text-align:center;margin:8px 0;font-size:19px}
 .q table{border-collapse:collapse;margin:10px auto;font-family:var(--font-ui);font-size:14px;font-variant-numeric:tabular-nums}
 .q th,.q td{border:1px solid var(--line);padding:5px 10px;text-align:center}
 .q th{font-weight:600;color:var(--muted)}
 .tw{overflow-x:auto}
+.qwrap{display:flex;flex-direction:column;gap:14px}
 .opts{display:flex;flex-direction:column;gap:8px}
-.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:var(--font-q);font-size:17.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:var(--font-q);font-size:17.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
 .opt i{font-family:var(--font-ui);font-style:normal;font-size:12.5px;font-weight:700;width:24px;height:24px;flex:none;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
 .opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
 .opt[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
@@ -73,62 +80,135 @@ button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline
 .opt.ok i{background:var(--good);border-color:var(--good);color:var(--surface)}
 .opt.no{border-color:var(--bad);background:var(--bad-soft)}
 .opt.no i{background:var(--bad);border-color:var(--bad);color:var(--surface)}
-.opt:disabled{cursor:default;opacity:1}
+.opt:disabled{cursor:default;opacity:1;color:var(--ink)}
 .grid-in{display:flex;flex-direction:column;gap:6px}
-.grid-in input{font-family:var(--font-q);font-size:20px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
-.grid-in label{font-size:12.5px;color:var(--muted)}
-.btn{font:inherit;font-weight:600;font-size:15px;padding:12px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.grid-in input,.search{font-family:var(--font-q);font-size:20px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.search{font-family:var(--font-ui);font-size:15px;background:var(--surface)}
+.grid-in span{font-size:12.5px;color:var(--muted)}
+.btn{font-weight:600;font-size:15px;padding:12px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn.ghost{background:var(--surface);color:var(--ink);border:1px solid var(--line)}
 .btn:disabled{opacity:.45;cursor:default}
+.btnrow{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;gap:8px}
 .fb{border-radius:12px;padding:12px;font-size:14.5px;display:flex;flex-direction:column;gap:6px}
-.fb.good{background:var(--good-soft)} .fb.bad{background:var(--bad-soft)}
+.fb.good{background:var(--good-soft)} .fb.bad{background:var(--bad-soft)} .fb.note{background:var(--accent-soft)}
 .fb b{font-size:15px} .fb.good b{color:var(--good)} .fb.bad b{color:var(--bad)}
-.fb p{margin:0}
 .rows{display:flex;flex-direction:column;gap:10px}
 .row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:13.5px}
 .row span:last-of-type{color:var(--muted);font-variant-numeric:tabular-nums}
 .bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
 .bar div{height:100%;background:var(--accent);border-radius:3px}
-.link{font:inherit;font-size:13px;color:var(--muted);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;align-self:flex-start}
+.link{font-size:13.5px;color:var(--accent);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;align-self:flex-start;text-align:left}
+.muted{color:var(--muted);font-size:13.5px}
 [hidden]{display:none!important}
+/* tab bar */
+.tabs{position:fixed;left:0;right:0;bottom:0;background:var(--surface);border-top:1px solid var(--line);display:grid;grid-template-columns:repeat(5,1fr);padding:4px max(6px,calc((100% - 520px)/2)) calc(4px + env(safe-area-inset-bottom,0px));z-index:5}
+.tabs button{display:flex;flex-direction:column;align-items:center;gap:2px;padding:6px 2px;border:0;background:none;color:var(--muted);font-size:11px;font-weight:600;cursor:pointer;border-radius:10px}
+.tabs button[aria-current="true"]{color:var(--accent)}
+.tabs svg{width:22px;height:22px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+/* test */
+.thead{display:flex;justify-content:space-between;align-items:center;gap:8px;flex-wrap:wrap}
+.thead b{font-size:14px}
+.pal{display:grid;grid-template-columns:repeat(auto-fill,minmax(38px,1fr));gap:6px}
+.pal button{height:36px;border-radius:8px;border:1px dashed var(--line);background:var(--surface);font-weight:600;font-size:13px;cursor:pointer;font-variant-numeric:tabular-nums}
+.pal button.ans{border-style:solid;background:var(--accent-soft);color:var(--accent);border-color:var(--accent-soft)}
+.pal button.flag{box-shadow:inset 0 -3px 0 var(--warn)}
+.pal button.cur{border:2px solid var(--accent)}
+.score{font-size:40px;font-weight:700;line-height:1;font-variant-numeric:tabular-nums}
+.score small{font-size:15px;color:var(--muted);font-weight:500}
+details{border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+summary{cursor:pointer;padding:11px 14px;font-weight:600;font-size:14.5px;list-style:none;display:flex;justify-content:space-between;gap:10px;align-items:center}
+summary::-webkit-details-marker{display:none}
+summary small{font-weight:500;color:var(--muted);font-size:12.5px}
+details>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
+.st{font-weight:700;flex:none}.st.ok{color:var(--good)}.st.no{color:var(--bad)}.st.skip{color:var(--muted)}
+.hist{display:flex;justify-content:space-between;gap:10px;font-size:13.5px;padding:8px 0;border-top:1px solid var(--line)}
+.hist:first-child{border-top:0}
+/* book */
+.dom{display:flex;flex-direction:column;gap:8px}
+.rule{border:1px solid var(--line);border-radius:10px;overflow:hidden}
+.rule>button{width:100%;text-align:left;background:var(--bg);border:0;padding:10px 12px;font-family:var(--font-q);font-size:16.5px;cursor:pointer;display:flex;justify-content:space-between;gap:10px;align-items:baseline}
+.rule>button::after{content:"?";font-family:var(--font-ui);font-size:12px;font-weight:700;color:var(--accent);border:1px solid var(--accent);border-radius:50%;width:18px;height:18px;flex:none;display:grid;place-items:center}
+.rule.open>button::after{content:"–"}
+.rule .ex{padding:10px 12px;display:none;flex-direction:column;gap:8px;font-size:14.5px}
+.rule.open .ex{display:flex}
+.rule .ex code{font-family:var(--font-q);font-size:15.5px;background:var(--accent-soft);padding:6px 10px;border-radius:8px;display:block}
+.badge{font-size:11px;font-weight:600;padding:1px 7px;border-radius:999px;background:var(--warn-soft);color:var(--warn);white-space:nowrap}
+.fig{width:100%;max-width:300px;height:auto;align-self:center}
+.fig text{font-family:var(--font-ui);font-size:11px;fill:var(--muted)}
+.fig .ta{fill:var(--accent);font-weight:600}
+.fig .fl{stroke:var(--muted);stroke-width:1;fill:none;opacity:.6}
+.fig .fs{stroke:var(--ink);stroke-width:2;fill:none;stroke-linejoin:round}
+.fig .fa{stroke:var(--accent);stroke-width:2.2;fill:none}
+.fig .fd{stroke:var(--accent);stroke-width:1.4;stroke-dasharray:4 4;fill:none}
+.fig .dot{fill:var(--accent)} .fig .dot2{fill:var(--ink);opacity:.7}
+.gl{display:grid;grid-template-columns:1fr 1fr;gap:4px 12px;font-size:13.5px}
+.gl b{font-family:var(--font-q);font-weight:500;font-size:15px}
+/* settings */
+.pick{display:flex;flex-direction:column;gap:4px;text-align:left;padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:var(--surface);cursor:pointer}
+.pick[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.pick b{font-size:15.5px}
+.pick span{font-size:13px;color:var(--muted)}
+/* calculator sheet + tools */
+.sheet{position:fixed;inset:0;background:var(--bg);z-index:20;display:flex;flex-direction:column}
+.sheet .bar2{display:flex;justify-content:space-between;align-items:center;padding:8px 12px;border-bottom:1px solid var(--line);background:var(--surface)}
+.frame{flex:1;min-height:0;display:flex}
+.frame iframe{border:0;width:100%;height:100%;flex:1;background:#fff}
+.toolbox{height:calc(100dvh - 210px);min-height:380px;border:1px solid var(--line);border-radius:12px;overflow:hidden;display:flex;background:var(--surface)}
+.ph{padding:20px;display:flex;flex-direction:column;gap:10px;justify-content:center;align-items:flex-start}
+.modal{position:fixed;inset:0;background:rgba(10,14,25,.55);z-index:30;display:grid;place-items:center;padding:20px}
+.modal .card{max-width:360px;width:100%}
+@media (prefers-reduced-motion:no-preference){.bar div{transition:width .3s}}
+
+.btn.sm{padding:9px 12px;font-size:14px;width:auto;align-self:flex-start}
+.rule.hit{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
+#bookBack{position:sticky;top:8px;z-index:3}
 </style>
 </head>
 <body>
 <div class="app">
-  <header><h1>PSAT 10 Math</h1><span>тренажёр задач</span></header>
+  <header><h1>Pmath</h1><button class="chip" id="testChip" title="Сменить тип теста"></button></header>
 
-  <div class="strip">
-    <div class="tile"><b id="sTotal">0</b><small>решено</small></div>
-    <div class="tile"><b id="sAcc">—</b><small>точность</small></div>
-    <div class="tile"><b id="sStreak">0</b><small>серия подряд</small></div>
-  </div>
-
-  <div class="group">
-    <div class="label">Секция</div>
-    <div class="chips" id="secs"></div>
-  </div>
-  <div class="group">
-    <div class="label">Сложность</div>
-    <div class="seg" id="lvls"></div>
-  </div>
-
-  <div class="card" id="card">
-    <div class="meta"><div class="tags"><span class="tag" id="tSec"></span><span class="tag lv" id="tLvl"></span></div><span class="timer" id="timer" title="На тесте в среднем 1:35 на вопрос">0:00</span></div>
-    <div class="q" id="q"></div>
-    <div class="opts" id="opts"></div>
-    <div class="grid-in" id="gridWrap" hidden>
-      <label for="gridInput">Впиши ответ числом</label>
-      <input id="gridInput" inputmode="text" autocomplete="off" placeholder="Например, 12">
+  <section class="view" id="v-practice">
+    <div class="strip">
+      <div class="tile"><b id="sTotal">0</b><small>решено</small></div>
+      <div class="tile"><b id="sAcc">—</b><small>точность</small></div>
+      <div class="tile"><b id="sStreak">0</b><small>серия подряд</small></div>
     </div>
-    <div class="fb" id="fb" hidden></div>
-    <button class="btn" id="go" disabled>Проверить</button>
-  </div>
+    <div class="group"><h3>Секция</h3><div class="chips" id="secs"></div></div>
+    <div class="group"><h3>Сложность</h3><div class="seg" id="lvls"></div></div>
+    <div class="card">
+      <div class="meta"><div class="tags"><span class="tag" id="tSec"></span><span class="tag lv" id="tLvl"></span></div>
+        <div class="metaR"><button class="mini" data-calc>Desmos</button><span class="tm ok" id="timer">0:00</span></div></div>
+      <div class="qwrap" id="pQ"></div>
+      <div class="fb" id="fb" hidden></div>
+      <button class="btn" id="go" disabled>Проверить</button>
+    </div>
+    <div class="card"><h3>Точность по секциям</h3><div class="rows" id="rows"></div></div>
+  </section>
 
-  <div class="card">
-    <div class="label">Точность по секциям</div>
-    <div class="rows" id="rows"></div>
-    <button class="link" id="reset">Сбросить статистику</button>
-  </div>
+  <section class="view" id="v-test" hidden></section>
+  <section class="view" id="v-book" hidden></section>
+  <section class="view" id="v-tools" hidden>
+    <div class="seg" id="toolSeg"></div>
+    <div class="toolbox" id="toolBox"></div>
+    <p class="muted" id="toolNote"></p>
+  </section>
+  <section class="view" id="v-settings" hidden></section>
 </div>
+
+<nav class="tabs" id="tabs">
+  <button data-v="practice" aria-current="true"><svg viewBox="0 0 24 24"><path d="M4 20l4-1 11-11-3-3L5 16l-1 4z"/><path d="M14 7l3 3"/></svg>Тренировка</button>
+  <button data-v="test"><svg viewBox="0 0 24 24"><circle cx="12" cy="13" r="8"/><path d="M12 9v4l3 2M9 2h6"/></svg>Тест</button>
+  <button data-v="book"><svg viewBox="0 0 24 24"><path d="M4 5c3-1 6-1 8 1 2-2 5-2 8-1v14c-3-1-6-1-8 1-2-2-5-2-8-1V5z"/><path d="M12 6v14"/></svg>Учебник</button>
+  <button data-v="tools"><svg viewBox="0 0 24 24"><rect x="5" y="3" width="14" height="18" rx="2"/><path d="M8 7h8M8 12h.01M12 12h.01M16 12h.01M8 16h.01M12 16h.01M16 16h.01"/></svg>Калькулятор</button>
+  <button data-v="settings"><svg viewBox="0 0 24 24"><path d="M4 7h10M18 7h2M4 17h2M10 17h10"/><circle cx="16" cy="7" r="2"/><circle cx="8" cy="17" r="2"/></svg>Настройки</button>
+</nav>
+
+<div class="sheet" id="calc" hidden>
+  <div class="bar2"><b>Desmos</b><button class="mini" id="calcClose">Закрыть</button></div>
+  <div class="frame" id="calcFrame"></div>
+</div>
+<div class="modal" id="dlg" hidden><div class="card"><p id="dlgText"></p><div class="btnrow"><button class="btn ghost" id="dlgNo">Отмена</button><button class="btn" id="dlgYes">Да</button></div></div></div>
 
 <script>
 /*GEN-START*/
@@ -159,181 +239,428 @@ function mc(correct,cands,fmt){
 }
 const money=v=>'$'+(Number.isInteger(v)?v:v.toFixed(2));
 
-const G={alg:{1:[],2:[],3:[]},adv:{1:[],2:[],3:[]},psda:{1:[],2:[],3:[]},geo:{1:[],2:[],3:[]}};
+const POOL=[];
+function add(sec,lvl,tier,topic,fn){POOL.push({sec,lvl,tier,topic,fn});}
 
 /* ---------- Algebra ---------- */
-G.alg[1].push(()=>{const a=ri(2,9),x=ri(2,12),b=ri(1,20),c=a*x+b;
+add('alg',1,0,'lin1',()=>{const a=ri(2,9),x=ri(2,12),b=ri(1,20),c=a*x+b;
   return {q:`If ${a}x + ${b} = ${c}, what is the value of x?`,...mc(x,[x+1,x-1,c-b,x+2]),
     expl:`Вычитаем ${b} из обеих частей: ${a}x = ${c-b}. Делим на ${a}: x = ${x}.`};});
-G.alg[1].push(()=>{const fee=ri(2,9)*5;let rate;do{rate=ri(2,9)*5;}while(rate===fee);
+add('alg',1,0,'linmodel',()=>{const fee=ri(2,9)*5;let rate;do{rate=ri(2,9)*5;}while(rate===fee);
   const ctx=pick([['A gym charges a one-time sign-up fee of','per month','months'],['A bike shop charges a flat rental fee of','per hour','hours'],['A plumber charges a service fee of','per hour of work','hours']]);
   return {q:`${ctx[0]} $${fee} plus $${rate} ${ctx[1]}. Which equation gives the total cost C, in dollars, for m ${ctx[2]}?`,
     ...mc(`C = ${rate}m + ${fee}`,[`C = ${fee}m + ${rate}`,`C = ${fee+rate}m`,`C = ${rate}(m + ${fee})`]),
     expl:`Разовая плата $${fee} — это константа, а $${rate} умножается на количество m. Получаем C = ${rate}m + ${fee}.`};});
-G.alg[1].push(()=>{const x1=ri(-5,3),y1=ri(-6,6),dx=ri(1,4),k=nz(-4,4),x2=x1+dx,y2=y1+k*dx;
+add('alg',1,0,'slope',()=>{const x1=ri(-5,3),y1=ri(-6,6),dx=ri(1,4),k=nz(-4,4),x2=x1+dx,y2=y1+k*dx;
   return {q:`A line in the xy-plane passes through the points (${m(x1)}, ${m(y1)}) and (${m(x2)}, ${m(y2)}). What is the slope of the line?`,answer:k,
     expl:`Наклон = (y₂ − y₁)/(x₂ − x₁) = (${m(y2)} − (${m(y1)}))/(${m(x2)} − (${m(x1)})) = ${m(k*dx)}/${dx} = ${m(k)}.`};});
 
-G.alg[2].push(()=>{const x=ri(1,9),y=ri(1,9),a=ri(2,5),b=ri(2,5);
+add('alg',2,0,'systems',()=>{const x=ri(1,9),y=ri(1,9),a=ri(2,5),b=ri(2,5);
   return {q:`${eq(`${a}x + y = ${a*x+y}`)}${eq(`x + ${b}y = ${x+b*y}`)}The solution to the given system of equations is (x, y). What is the value of x + y?`,answer:x+y,
     expl:`Из первого уравнения y = ${a*x+y} − ${a}x. Подставляем во второе и получаем x = ${x}, затем y = ${y}. Сумма: ${x+y}.`};});
-G.alg[2].push(()=>{const a=ri(2,6),x=ri(2,9),b=ri(1,15),k=pick([2,3]),n=ri(1,9),c=a*x+b,ans=k*a*x-n;
+add('alg',2,0,'lin1',()=>{const a=ri(2,6),x=ri(2,9),b=ri(1,15),k=pick([2,3]),n=ri(1,9),c=a*x+b,ans=k*a*x-n;
   return {q:`If ${a}x + ${b} = ${c}, what is the value of ${k*a}x − ${n}?`,...mc(ans,[a*x-n,x,k*a*x+n,k*c-n]),
     expl:`Из уравнения ${a}x = ${c-b}. Тогда ${k*a}x = ${k} · ${c-b} = ${k*(c-b)}, и ${k*a}x − ${n} = ${ans}. Находить сам x не обязательно.`};});
-G.alg[2].push(()=>{const p=ri(3,12),f=ri(5,20),n=ri(4,15),r=ri(1,p-1),B=f+p*n+r;const who=pick(['Mia','Daniel','Aisha','Leo']);
+add('alg',2,0,'ineq',()=>{const p=ri(3,12),f=ri(5,20),n=ri(4,15),r=ri(1,p-1),B=f+p*n+r;const who=pick(['Mia','Daniel','Aisha','Leo']);
   return {q:`${who} has $${B} to spend at a fair. Admission costs $${f}, and each ride ticket costs $${p}. What is the maximum number of ride tickets ${who} can buy?`,answer:n,
     expl:`Неравенство: ${f} + ${p}t ≤ ${B}, то есть ${p}t ≤ ${B-f}, t ≤ ${((B-f)/p).toFixed(2)}. Билетов целое число, поэтому максимум ${n}.`};});
-G.alg[2].push(()=>{const k=nz(-3,3),b=ri(-8,8),x1=ri(1,4),x2=x1+ri(1,3);
+add('alg',2,0,'slope',()=>{const k=nz(-3,3),b=ri(-8,8),x1=ri(1,4),x2=x1+ri(1,3);
   return {q:`A line passes through the points (${x1}, ${m(k*x1+b)}) and (${x2}, ${m(k*x2+b)}) and crosses the y-axis at the point (0, b). What is the value of b?`,answer:b,
     expl:`Наклон = (${m(k*x2+b)} − (${m(k*x1+b)}))/(${x2} − ${x1}) = ${m(k)}. Подставляем точку: ${m(k*x1+b)} = ${m(k)} · ${x1} + b, откуда b = ${m(b)}.`};});
 
-G.alg[3].push(()=>{const a=ri(2,5),b=ri(2,6),k=pick([2,3,4]),c=ri(1,9),d=k*c+ri(1,5);
+add('alg',3,0,'systems',()=>{const a=ri(2,5),b=ri(2,6),k=pick([2,3,4]),c=ri(1,9),d=k*c+ri(1,5);
   return {q:`${eq(`${a}x + ${b}y = ${c}`)}${eq(`${k*a}x + py = ${d}`)}In the given system of equations, p is a constant. If the system has no solution, what is the value of p?`,answer:k*b,
     expl:`Решений нет, когда прямые параллельны: коэффициенты при x и y пропорциональны, а свободные члены — нет. ${k*a}/${a} = ${k}, значит p = ${k} · ${b} = ${k*b} (при этом ${d} ≠ ${k} · ${c}).`};});
-G.alg[3].push(()=>{const a=ri(2,6),p=ri(2,7),q=ri(1,9);
+add('alg',3,0,'lin1',()=>{const a=ri(2,6),p=ri(2,7),q=ri(1,9);
   return {q:`${eq(`k(x + ${p}) − ${q} = ${a}x + c`)}In the given equation, k and c are constants. If the equation has infinitely many solutions, what is the value of c?`,answer:a*p-q,
     expl:`Бесконечно много решений — обе части совпадают тождественно. Слева kx + ${p}k − ${q}. Значит k = ${a}, а c = ${p} · ${a} − ${q} = ${a*p-q}.`};});
-G.alg[3].push(()=>{const A=ri(8,15),C=A-ri(2,5),na=ri(20,60),nc=ri(20,60),n=na+nc,R=A*na+C*nc;
+add('alg',3,0,'systems',()=>{const A=ri(8,15),C=A-ri(2,5),na=ri(20,60),nc=ri(20,60),n=na+nc,R=A*na+C*nc;
   return {q:`A theater sold ${n} tickets for a show. Adult tickets cost $${A} each and student tickets cost $${C} each. The total revenue from ticket sales was $${R}. How many adult tickets were sold?`,answer:na,
     expl:`Система: a + s = ${n} и ${A}a + ${C}s = ${R}. Подставляем s = ${n} − a: ${A}a + ${C}(${n} − a) = ${R}, откуда ${A-C}a = ${R-C*n}, a = ${na}.`};});
 
 /* ---------- Advanced Math ---------- */
-G.adv[1].push(()=>{const a=ri(1,3),b=nz(-5,5),c=ri(-6,6),k=nz(-3,4),ans=a*k*k+b*k+c;
+add('adv',1,0,'func',()=>{const a=ri(1,3),b=nz(-5,5),c=ri(-6,6),k=nz(-3,4),ans=a*k*k+b*k+c;
   return {q:`The function f is defined by ${eq(`f(x) = ${poly(a,b,c)}`)}What is the value of f(${m(k)})?`,...mc(ans,[a*k*k-b*k+c,a*k*2+b*k+c,-a*k*k+b*k+c,ans+ri(1,3)]),
     expl:`Подставляем x = ${m(k)}: ${a} · ${k*k} ${sg(b*k)} ${c?sg(c):''} = ${m(ans)}. Следи за знаком при возведении в квадрат.`};});
-G.adv[1].push(()=>{const p=nz(-7,7),q=nz(-7,7);
+add('adv',1,0,'poly',()=>{const p=nz(-7,7),q=nz(-7,7);
   return {q:`Which expression is equivalent to (x ${sg(p)})(x ${sg(q)})?`,
     ...mc(poly(1,p+q,p*q),[poly(1,p*q,p+q),poly(1,p-q,p*q),poly(1,p+q,-p*q),poly(1,-(p+q),p*q),poly(1,p+q,p+q)]),
     expl:`Раскрываем скобки: x · x + (${m(q)})x + (${m(p)})x + (${m(p)})(${m(q)}) = ${poly(1,p+q,p*q)}.`};});
-G.adv[1].push(()=>{const a=ri(2,6),b=ri(2,6),t=ri(0,1);
+add('adv',1,0,'exp',()=>{const a=ri(2,6),b=ri(2,6),t=ri(0,1);
   return t?{q:`If x<sup>${a}</sup> · x<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a+b,expl:`При умножении степеней с одинаковым основанием показатели складываются: ${a} + ${b} = ${a+b}.`}
-          :{q:`If (x<sup>${a}</sup>)<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a*b,expl:`При возведении степени в степень показатели перемножаются: ${a} · ${b} = ${a*b}.`};});
+          :{q:`If (x<sup>${a}</sup>)<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a*b,rule:1,expl:`При возведении степени в степень показатели перемножаются: ${a} · ${b} = ${a*b}.`};});
 
-G.adv[2].push(()=>{const r1=ri(1,9),r2=-ri(1,9);
+add('adv',2,0,'quad',()=>{const r1=ri(1,9),r2=-ri(1,9);
   return {q:`What is the positive solution to the equation ${eq(`${poly(1,-(r1+r2),r1*r2)} = 0`)}`,answer:r1,
     expl:`Раскладываем на множители: (x − ${r1})(x + ${-r2}) = 0. Корни: ${r1} и ${m(r2)}. Положительный — ${r1}.`};});
-G.adv[2].push(()=>{let r1,r2;do{r1=nz(-8,8);r2=nz(-8,8);}while(r1===r2);const s=r1+r2;
+add('adv',2,1,'quad',()=>{let r1,r2;do{r1=nz(-8,8);r2=nz(-8,8);}while(r1===r2);const s=r1+r2;
   return {q:`What is the sum of the solutions to the equation ${eq(`${poly(1,-s,r1*r2)} = 0`)}`,...mc(s,[-s,r1*r2,-r1*r2,r1-r2]),
     expl:`По теореме Виета сумма корней x${sq} + bx + c = 0 равна −b. Здесь b = ${m(-s)}, сумма = ${m(s)} (корни ${m(r1)} и ${m(r2)}).`};});
-G.adv[2].push(()=>{const a=pick([50,100,200,300,500]),r=pick([2,3]),t=ri(2,4),ans=a*r**t;
+add('adv',2,0,'expfn',()=>{const a=pick([50,100,200,300,500]),r=pick([2,3]),t=ri(2,4),ans=a*r**t;
   return {q:`The number of bacteria in a culture is modeled by ${eq(`P(t) = ${a}(${r})<sup>t</sup>`)}where t is the number of hours since the start of the experiment. According to the model, how many bacteria are there after ${t} hours?`,
     ...mc(ans,[a*r*t,a*r**(t-1),a*r**(t+1),(a*r)*(t+1)],x=>x.toLocaleString('en-US')),
     expl:`Подставляем t = ${t}: ${a} · ${r}^${t} = ${a} · ${r**t} = ${ans}. Сначала степень, потом умножение.`};});
-G.adv[2].push(()=>{const b=ri(3,9),a=ri(1,20);
+add('adv',2,0,'radical',()=>{const b=ri(3,9),a=ri(1,20);
   return {q:`What value of x satisfies the equation ${eq(`√(x + ${a}) = ${b}`)}`,answer:b*b-a,
     expl:`Возводим обе части в квадрат: x + ${a} = ${b*b}, откуда x = ${m(b*b-a)}.`};});
 
-G.adv[3].push(()=>{const h=nz(-6,6),k=ri(-9,9);
+add('adv',3,1,'vertex',()=>{const h=nz(-6,6),k=ri(-9,9);
   return {q:`The function f is defined by ${eq(`f(x) = ${poly(1,-2*h,h*h+k)}`)}What is the minimum value of f(x)?`,answer:k,
     expl:`Выделяем полный квадрат: f(x) = (x ${sg(-h)})${sq} ${k?sg(k):''}. Квадрат не меньше нуля, поэтому минимум равен ${m(k)} (при x = ${m(h)}).`};});
-G.adv[3].push(()=>{const n=ri(2,9);
+add('adv',3,1,'quad',()=>{const n=ri(2,9);
   return {q:`${eq(`x${sq} − kx + ${n*n} = 0`)}In the given equation, k is a positive constant. If the equation has exactly one real solution, what is the value of k?`,answer:2*n,
     expl:`Один корень — дискриминант равен нулю: k${sq} − 4 · ${n*n} = 0, k${sq} = ${4*n*n}, k = ${2*n} (берём положительное).`};});
-G.adv[3].push(()=>{const a=ri(2,8);let k;do{k=ri(a+3,22);}while(k===2*a);
+add('adv',3,1,'radical',()=>{const a=ri(2,8);let k;do{k=ri(a+3,22);}while(k===2*a);
   return {q:`${eq(`(x${sq} − ${a*a}) / (x − ${a}) = ${k}`)}If x ≠ ${a}, what value of x satisfies the given equation?`,answer:k-a,
     expl:`Числитель — разность квадратов: (x − ${a})(x + ${a}). Сокращаем на (x − ${a}): x + ${a} = ${k}, x = ${k-a}.`};});
-G.adv[3].push(()=>{const a=ri(2,6),b=pick([2,3]),f2=a*b*b,ans=a*b**3;
+add('adv',3,1,'expfn',()=>{const a=ri(2,6),b=pick([2,3]),f2=a*b*b,ans=a*b**3;
   return {q:`The function f is defined by f(x) = a · b<sup>x</sup>, where a and b are positive constants. If f(0) = ${a} and f(2) = ${f2}, what is the value of f(3)?`,
     ...mc(ans,[f2+(f2-a)/2,a*b**4,a*b*3,f2+a,f2*3]),
     expl:`f(0) = a = ${a}. f(2) = ${a}b${sq} = ${f2}, значит b${sq} = ${b*b}, b = ${b}. Тогда f(3) = ${a} · ${b**3} = ${ans}. Рост не линейный, а в ${b} раза за шаг.`};});
 
 /* ---------- Problem-Solving and Data Analysis ---------- */
-G.psda[1].push(()=>{const price=pick([40,60,80,120,160,200,240]),p=pick([10,15,20,25,30,40]),ans=price*(100-p)/100;
+add('psda',1,0,'percent',()=>{const price=pick([40,60,80,120,160,200,240]),p=pick([10,15,20,25,30,40]),ans=price*(100-p)/100;
   const item=pick(['jacket','backpack','pair of headphones','calculator']);
   return {q:`A ${item} originally priced at $${price} is on sale for ${p}% off. What is the sale price?`,...mc(ans,[price-p,price*p/100,price*(100+p)/100,ans+5],money),
     expl:`Скидка: ${p}% от ${price} = ${money(price*p/100)}. Цена со скидкой: ${price} − ${price*p/100} = ${money(ans)}.`};});
-G.psda[1].push(()=>{const mean=ri(10,40);const d=[ri(-8,8),ri(-8,8),ri(-8,8),ri(-8,8)];d.push(-d.reduce((s,v)=>s+v,0));const v=shuffle(d.map(x=>mean+x));
+add('psda',1,0,'stats',()=>{const mean=ri(10,40);const d=[ri(-8,8),ri(-8,8),ri(-8,8),ri(-8,8)];d.push(-d.reduce((s,v)=>s+v,0));const v=shuffle(d.map(x=>mean+x));
   return {q:`What is the mean of the data set below?${eq(v.join(', '))}`,answer:mean,
     expl:`Сумма: ${v.join(' + ')} = ${mean*5}. Делим на 5: ${mean}.`};});
-G.psda[1].push(()=>{const s=pick([40,45,50,55,60,65]),h=ri(2,4),t=ri(5,8);
+add('psda',1,0,'ratio',()=>{const s=pick([40,45,50,55,60,65]),h=ri(2,4),t=ri(5,8);
   return {q:`A train travels ${s*h} miles in ${h} hours at a constant speed. At this rate, how many miles will the train travel in ${t} hours?`,...mc(s*t,[s*h+t,s*(t-1),s*(t+1),s*h*2]),
     expl:`Скорость: ${s*h} / ${h} = ${s} миль в час. За ${t} часов: ${s} · ${t} = ${s*t}.`};});
 
-G.psda[2].push(()=>{const a=pick([20,40,60,80,120,200,240,300]),p=pick([5,10,15,20,25,30,40,60]),b=a+a*p/100;
+add('psda',2,0,'percent',()=>{const a=pick([20,40,60,80,120,200,240,300]),p=pick([5,10,15,20,25,30,40,60]),b=a+a*p/100;
   return {q:`The price of a monthly bus pass increased from $${a} to $${b}. What is the percent increase in the price?`,...mc(p,[b-a,Math.round((b-a)/b*100),p+5,p+10],x=>x+'%'),
     expl:`Рост: ${b} − ${a} = ${b-a}. Делим на исходную цену: ${b-a} / ${a} = ${p/100}, то есть ${p}%. Делить нужно на старое значение, не на новое.`};});
-G.psda[2].push(()=>{const v=Array.from({length:7},()=>ri(10,40)),s=v.slice().sort((x,y)=>x-y);
+add('psda',2,0,'stats',()=>{const v=Array.from({length:7},()=>ri(10,40)),s=v.slice().sort((x,y)=>x-y);
   return {q:`The number of points a player scored in each of 7 games is shown.${eq(v.join(', '))}What is the median number of points?`,answer:s[3],
     expl:`Упорядочиваем: ${s.join(', ')}. Медиана — четвёртое значение из семи: ${s[3]}.`};});
-G.psda[2].push(()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40),T=a+b+c+d;
+add('psda',2,0,'prob',()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40),T=a+b+c+d;
   return {q:`<div class="tw"><table><tr><th></th><th>Bus</th><th>Car</th><th>Total</th></tr><tr><th>Grade 9</th><td>${a}</td><td>${b}</td><td>${a+b}</td></tr><tr><th>Grade 10</th><td>${c}</td><td>${d}</td><td>${c+d}</td></tr><tr><th>Total</th><td>${a+c}</td><td>${b+d}</td><td>${T}</td></tr></table></div>The table shows how students get to school. If a Grade 10 student is selected at random, what is the probability that the student takes the bus?`,
     ...mc(fr(c,c+d),[fr(c,a+c),fr(c,T),fr(d,c+d),fr(c+d,T),fr(a,a+b),fr(a+c,T)]),
     expl:`Выбираем только из десятиклассников — их ${c+d}. На автобусе из них ${c}. Вероятность: ${c}/${c+d} = ${fr(c,c+d)}. Знаменатель — не все ${T} учеников.`};});
-G.psda[2].push(()=>{let a,b;do{a=ri(2,5);b=ri(2,7);}while(gcd(a,b)!==1);const k=ri(4,15);
+add('psda',2,0,'ratio',()=>{let a,b;do{a=ri(2,5);b=ri(2,7);}while(gcd(a,b)!==1);const k=ri(4,15);
   return {q:`The ratio of red marbles to blue marbles in a bag is ${a} to ${b}. If there are ${(a+b)*k} marbles in the bag and all are red or blue, how many red marbles are there?`,answer:a*k,
     expl:`Всего частей: ${a} + ${b} = ${a+b}. Одна часть: ${(a+b)*k} / ${a+b} = ${k}. Красных: ${a} · ${k} = ${a*k}.`};});
 
-G.psda[3].push(()=>{const p=pick([10,20,25,30,40,50]),q=pick([10,20,25,30,40,50]),ans=100+p-q-p*q/100,f=x=>(+x.toFixed(1))+'%';
+add('psda',3,0,'percent',()=>{const p=pick([10,20,25,30,40,50]),q=pick([10,20,25,30,40,50]),ans=100+p-q-p*q/100,f=x=>(+x.toFixed(1))+'%';
   return {q:`The price of a stock increased by ${p}% and then decreased by ${q}%. The final price is what percent of the original price?`,...mc(ans,[100+p-q,100+p-q+p*q/100,100-p*q/100,100-q],f),
     expl:`Множители: ${1+p/100} · ${1-q/100} = ${+(ans/100).toFixed(4)}, то есть ${f(ans)} от исходной. Проценты нельзя просто сложить и вычесть: второй процент берётся уже от новой цены.`};});
-G.psda[3].push(()=>{const n=ri(4,8),mean=ri(10,30),dl=nz(-3,4),x=(n+1)*(mean+dl)-n*mean;
+add('psda',3,0,'stats',()=>{const n=ri(4,8),mean=ri(10,30),dl=nz(-3,4),x=(n+1)*(mean+dl)-n*mean;
   return {q:`The mean of ${n} numbers is ${mean}. After one more number is added, the mean of the ${n+1} numbers is ${mean+dl}. What number was added?`,answer:x,
     expl:`Сумма была ${n} · ${mean} = ${n*mean}, стала ${n+1} · ${mean+dl} = ${(n+1)*(mean+dl)}. Разница: ${m(x)}.`};});
-G.psda[3].push(()=>{const [a,b]=pick([[1,2],[2,3],[1,3],[3,2],[1,4],[2,1]]),g=ri(4,8),t=nz(-3,3),m1=ri(65,82),m2=m1+(a+b)*t,ans=m1+b*t;
+add('psda',3,0,'stats',()=>{const [a,b]=pick([[1,2],[2,3],[1,3],[3,2],[1,4],[2,1]]),g=ri(4,8),t=nz(-3,3),m1=ri(65,82),m2=m1+(a+b)*t,ans=m1+b*t;
   return {q:`Class A has ${a*g} students with a mean test score of ${m1}. Class B has ${b*g} students with a mean test score of ${m2}. What is the mean test score of all the students in both classes combined?`,...mc(ans,[(m1+m2)/2,m1+a*t,m2,m1]),
     expl:`Взвешенное среднее: (${a*g} · ${m1} + ${b*g} · ${m2}) / ${(a+b)*g} = ${ans}. Просто усреднить ${m1} и ${m2} нельзя — классы разного размера.`};});
 
 /* ---------- Geometry and Trigonometry ---------- */
-G.geo[1].push(()=>{const b=ri(2,7)*2,h=ri(3,12);
+add('geo',1,0,'area',()=>{const b=ri(2,7)*2,h=ri(3,12);
   return {q:`A triangle has a base of ${b} inches and a height of ${h} inches. What is the area of the triangle, in square inches?`,...mc(b*h/2,[b*h,b+h,b*h/2+b,2*b*h]),
     expl:`Площадь треугольника = ½ · основание · высота = ½ · ${b} · ${h} = ${b*h/2}.`};});
-G.geo[1].push(()=>{const a=ri(25,80),b=ri(25,80);
+add('geo',1,0,'angles',()=>{const a=ri(25,80),b=ri(25,80);
   return {q:`In a triangle, two of the angles measure ${a}° and ${b}°. What is the measure, in degrees, of the third angle?`,answer:180-a-b,
     expl:`Сумма углов треугольника 180°: 180 − ${a} − ${b} = ${180-a-b}.`};});
-G.geo[1].push(()=>{const r=ri(3,9),t=ri(0,1);
+add('geo',1,0,'circle',()=>{const r=ri(3,9),t=ri(0,1);
   return t?{q:`A circle has a radius of ${r} centimeters. What is the area of the circle, in square centimeters?`,...mc(`${r*r}π`,[`${2*r}π`,`${r}π`,`${2*r*r}π`,`${4*r*r}π`]),expl:`Площадь круга = πr${sq} = π · ${r}${sq} = ${r*r}π.`}
           :{q:`A circle has a radius of ${r} centimeters. What is the circumference of the circle, in centimeters?`,...mc(`${2*r}π`,[`${r*r}π`,`${r}π`,`${4*r}π`,`${2*r*r}π`]),expl:`Длина окружности = 2πr = 2 · π · ${r} = ${2*r}π.`};});
 
-G.geo[2].push(()=>{const tr=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[3,4,5]]),k=ri(1,3),[a,b,c]=tr.map(v=>v*k),t=ri(0,1);
+add('geo',2,0,'pyth',()=>{const tr=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[3,4,5]]),k=ri(1,3),[a,b,c]=tr.map(v=>v*k),t=ri(0,1);
   return t?{q:`A right triangle has legs of length ${a} and ${b}. What is the length of the hypotenuse?`,answer:c,expl:`По теореме Пифагора: ${a}${sq} + ${b}${sq} = ${a*a} + ${b*b} = ${c*c}, корень — ${c}.`}
           :{q:`A right triangle has a hypotenuse of length ${c} and one leg of length ${a}. What is the length of the other leg?`,answer:b,expl:`По теореме Пифагора: ${c}${sq} − ${a}${sq} = ${c*c} − ${a*a} = ${b*b}, корень — ${b}.`};});
-G.geo[2].push(()=>{const a=ri(3,9),k=ri(2,4),b=ri(4,12);
+add('geo',2,0,'similar',()=>{const a=ri(3,9),k=ri(2,4),b=ri(4,12);
   return {q:`Triangles ABC and DEF are similar, where A corresponds to D and B corresponds to E. If AB = ${a}, DE = ${a*k}, and BC = ${b}, what is the length of EF?`,answer:b*k,
     expl:`Коэффициент подобия: DE / AB = ${a*k} / ${a} = ${k}. EF = ${k} · BC = ${k} · ${b} = ${b*k}.`};});
-G.geo[2].push(()=>{const r=ri(2,6),h=ri(3,10);
+add('geo',2,0,'volume',()=>{const r=ri(2,6),h=ri(3,10);
   return {q:`A right circular cylinder has a base radius of ${r} inches and a height of ${h} inches. What is the volume of the cylinder, in cubic inches?`,
     ...mc(`${r*r*h}π`,[`${2*r*h}π`,`${r*h}π`,`${4*r*r*h}π`,`${r*h*h}π`,`${r*r*h*2}π`]),
     expl:`Объём цилиндра = πr${sq}h = π · ${r*r} · ${h} = ${r*r*h}π.`};});
-G.geo[2].push(()=>{const x=ri(8,20),a=ri(2,4),c=ri(1,3),b=ri(1,30),d=180-(a+c)*x-b;
+add('geo',2,0,'angles',()=>{const x=ri(8,20),a=ri(2,4),c=ri(1,3),b=ri(1,30),d=180-(a+c)*x-b;
   return {q:`Two angles form a straight line. Their measures are (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the value of x?`,answer:x,
     expl:`Смежные углы в сумме дают 180°: ${a+c}x + ${b+d} = 180, ${a+c}x = ${180-b-d}, x = ${x}.`};});
 
-G.geo[3].push(()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),t=ri(0,1);
+add('geo',3,1,'trig',()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),t=ri(0,1);
   const all=[`${b}/${c}`,`${a}/${b}`,`${b}/${a}`,`${c}/${b}`,`${c}/${a}`,`${a}/${c}`],cor=t?`${b}/${c}`:`${a}/${b}`;
   return {q:`In right triangle ABC, angle C is the right angle and sin A = ${a}/${c}. What is the value of ${t?'cos':'tan'} A?`,...mc(cor,all.filter(s=>s!==`${a}/${c}`)),
     expl:`sin A = противолежащий / гипотенуза, значит катет напротив A равен ${a}, гипотенуза ${c}. Второй катет: √(${c*c} − ${a*a}) = ${b}. ${t?`cos A = прилежащий / гипотенуза = ${b}/${c}`:`tan A = противолежащий / прилежащий = ${a}/${b}`}.`};});
-G.geo[3].push(()=>{const h=nz(-5,5),k=nz(-5,5),r=ri(2,9),C=h*h+k*k-r*r;
+add('geo',3,2,'circleeq',()=>{const h=nz(-5,5),k=nz(-5,5),r=ri(2,9),C=h*h+k*k-r*r;
   return {q:`${eq(`x${sq} + y${sq} ${sg(-2*h)}x ${sg(-2*k)}y ${C?sg(C)+' ':''}= 0`)}The given equation represents a circle in the xy-plane. What is the radius of the circle?`,answer:r,
     expl:`Выделяем полные квадраты: (x ${sg(-h)})${sq} + (y ${sg(-k)})${sq} = ${h*h} + ${k*k} ${sg(-C)} = ${r*r}. Радиус: √${r*r} = ${r}.`};});
-G.geo[3].push(()=>{const th=pick([30,45,60,90,120]),k=ri(1,5),r=(180/gcd(th,180))*k,n=r*th/180,f=x=>x===1?'π':`${x}π`;
+add('geo',3,2,'circle',()=>{const th=pick([30,45,60,90,120]),k=ri(1,5),r=(180/gcd(th,180))*k,n=r*th/180,f=x=>x===1?'π':`${x}π`;
   return {q:`A circle has a radius of ${r}. An arc of the circle is intercepted by a central angle of ${th}°. What is the length of the arc?`,...mc(n,[2*n,r,2*r,3*n,n*4],f),
     expl:`Длина дуги = (угол / 360) · 2πr = (${th}/360) · 2π · ${r} = ${f(n)}.`};});
 
-function generate(sec,lvl){
-  for(let i=0;i<40;i++){
-    const p=pick(G[sec][lvl])();
+
+/* ---------- extra generators ---------- */
+add('alg',2,0,'ineq',()=>{const a=ri(2,6),k=ri(2,9),b=ri(1,12),c=b-a*k;
+  return {q:`Which of the following describes all solutions to the inequality ${eq(`−${a}x + ${b} > ${m(c)}`)}`,...mc(`x < ${k}`,[`x > ${k}`,`x < ${m(-k)}`,`x > ${m(-k)}`]),
+    expl:`Вычитаем ${b}: −${a}x > ${m(c-b)}. Делим на −${a} и переворачиваем знак: x < ${k}.`};});
+add('alg',3,0,'slope',()=>{const k=nz(-4,5),b=ri(-9,9),x1=ri(1,4),x2=x1+ri(2,4),x3=x2+ri(2,5);
+  return {q:`For the linear function f, f(${x1}) = ${m(k*x1+b)} and f(${x2}) = ${m(k*x2+b)}. What is the value of f(${x3})?`,answer:k*x3+b,
+    expl:`Наклон: (${m(k*x2+b)} − (${m(k*x1+b)})) / (${x2} − ${x1}) = ${m(k)}. От x = ${x2} до x = ${x3} ещё ${x3-x2} шагов: ${m(k*x2+b)} + ${x3-x2} · (${m(k)}) = ${m(k*x3+b)}.`};});
+add('adv',2,0,'poly',()=>{const a=ri(2,5),b=ri(1,6);
+  return {q:`Which expression is equivalent to (${a}x + ${b})${sq}?`,...mc(poly(a*a,2*a*b,b*b),[poly(a*a,0,b*b),poly(a*a,a*b,b*b),poly(a,2*a*b,b*b),poly(a*a,2*a*b,2*b)]),
+    expl:`(a + b)${sq} = a${sq} + 2ab + b${sq}: (${a}x)${sq} + 2 · ${a}x · ${b} + ${b}${sq} = ${poly(a*a,2*a*b,b*b)}. Средний член 2ab забывают чаще всего.`};});
+add('adv',2,1,'abs',()=>{const h=nz(-6,9),k=ri(2,9);
+  return {q:`What is the sum of the solutions to the equation ${eq(`|x ${sg(-h)}| = ${k}`)}`,answer:2*h,
+    expl:`Модуль равен ${k} в двух случаях: x ${sg(-h)} = ${k} или x ${sg(-h)} = −${k}. Корни ${m(h+k)} и ${m(h-k)}, сумма ${m(2*h)}.`};});
+add('adv',3,2,'quad',()=>{let r1,r2;do{r1=ri(-6,6);r2=ri(-6,6);}while(r1===r2);const k=nz(-3,4),d=nz(-5,8),b=k-(r1+r2),c=d+r1*r2;
+  return {q:`${eq(`y = ${poly(1,b,c)}`)}${eq(`y = ${k===1?'':k===-1?'−':m(k)}x ${sg(d)}`)}The graphs of the given equations intersect at two points in the xy-plane. What is the sum of the x-coordinates of these two points?`,answer:r1+r2,
+    expl:`Приравниваем правые части и переносим всё влево: ${poly(1,-(r1+r2),r1*r2)} = 0. Корни ${m(r1)} и ${m(r2)}, сумма ${m(r1+r2)}.`};});
+add('psda',2,0,'scatter',()=>{const a=ri(2,9),b=ri(10,60),x=ri(5,20);
+  return {q:`A line of best fit for a set of data is given by ${eq(`y = ${a}x + ${b}`)}where x is the number of weeks since a plant was first measured and y is its predicted height, in millimeters. What is the predicted height, in millimeters, at ${x} weeks?`,answer:a*x+b,
+    expl:`Подставляем x = ${x} в уравнение линии: ${a} · ${x} + ${b} = ${a*x+b}.`};});
+add('psda',3,0,'ratio',()=>{const s=ri(3,20)*6,ans=s*1000/60;
+  return {q:`A cyclist rides at a constant speed of ${s} kilometers per hour. What is this speed in meters per minute? (1 kilometer = 1,000 meters)`,...mc(ans,[s*60,s*10,s*100,ans/2]),
+    expl:`${s} км/ч = ${s} · 1000 м за 60 минут = ${s*1000} / 60 = ${ans} м/мин. Умножаем на 1000 (км в метры) и делим на 60 (часы в минуты).`};});
+add('psda',3,2,'infer',()=>{const p=ri(30,70),e=ri(2,5),n=pick([400,500,800,1000]);
+  return {q:`In a random sample of ${n} residents of a city, ${p}% said they support building a new park. The margin of error for this estimate is ${e} percentage points. Which of the following is the most appropriate conclusion about all residents of the city?`,
+    ...mc(`It is plausible that between ${p-e}% and ${p+e}% support the park.`,[`Exactly ${p}% support the park.`,`At least ${p+e}% support the park.`,`No more than ${p-e}% support the park.`]),
+    expl:`Погрешность (margin of error) задаёт интервал вокруг оценки: ${p}% ± ${e}%, то есть от ${p-e}% до ${p+e}%. Точное значение по выборке узнать нельзя.`};});
+add('geo',3,0,'volume',()=>{const k=pick([2,3,4]),s=ri(2,5),V=s**3;
+  return {q:`A cube has a volume of ${V} cubic centimeters. If the length of each edge is multiplied by ${k}, what is the volume, in cubic centimeters, of the new cube?`,answer:V*k**3,
+    expl:`Когда все размеры растут в k раз, объём растёт в k³ раз: ${V} · ${k**3} = ${V*k**3}. Площадь поверхности выросла бы в k² раз.`};});
+add('geo',3,0,'pyth',()=>{const a=ri(3,9),t=ri(0,1);
+  return t?{q:`An isosceles right triangle has legs of length ${a}. What is the length of its hypotenuse?`,...mc(`${a}√2`,[`${2*a}`,`${a}√3`,`${a*a}`,`${2*a}√2`]),expl:`Треугольник 45°-45°-90°: стороны относятся как 1 : 1 : √2. Гипотенуза = катет · √2 = ${a}√2.`}
+          :{q:`In a right triangle with angles of 30°, 60°, and 90°, the side opposite the 30° angle has length ${a}. What is the length of the hypotenuse?`,...mc(`${2*a}`,[`${a}√3`,`${a}√2`,`${2*a}√3`,`${3*a}`]),rule:3,expl:`Треугольник 30°-60°-90°: стороны x : x√3 : 2x. Напротив 30° лежит x = ${a}, гипотенуза 2x = ${2*a}.`};});
+add('geo',3,0,'angles',()=>{const x=ri(6,20),a=ri(2,5),c=ri(1,a-1),b=ri(5,40),d=b+(a-c)*x,ang=a*x+b;
+  return {q:`Lines ℓ and k are parallel and are intersected by a transversal. Two alternate interior angles measure (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the measure, in degrees, of each of these angles?`,answer:ang,
+    expl:`Накрест лежащие углы при параллельных прямых равны: ${a}x + ${b} = ${c===1?'':c}x + ${d}, откуда x = ${x}. Сам угол: ${a} · ${x} + ${b} = ${ang}. Спрашивают угол, а не x.`};});
+add('geo',2,1,'trig',()=>{const k=ri(10,80);
+  return {q:`If sin(x°) = cos(${k}°) and 0 < x < 90, what is the value of x?`,answer:90-k,
+    expl:`Синус угла равен косинусу дополнительного: sin(x°) = cos(90° − x°). Значит 90 − x = ${k}, x = ${90-k}.`};});
+add('geo',3,2,'trig',()=>{const [d,n,dd]=pick([[30,1,6],[45,1,4],[60,1,3],[120,2,3],[135,3,4],[150,5,6],[210,7,6],[240,4,3],[300,5,3]]),cor=`${n===1?'':n}π/${dd}`;
+  return {q:`An angle measures ${d}°. What is the measure of the angle in radians?`,...mc(cor,[`${d}π/90`,`${d}π/360`,`π/${d}`,`${d}π`]),
+    expl:`180° = π радиан, поэтому умножаем на π/180: ${d} · π/180 = ${cor}.`};});
+
+const RULE=[0,0,0,0,2,2,1,2,1,0, 0,0,0,0,3,0,0,0,2,1,0, 2,0,1,1,1,1,0,3,0,4, 0,2,0,0,0,0,0,0,1,1, 0,0,1,0,0,0,2,1,2,2,1,1,3];
+function generate(sec,lvl,tier){
+  let pool=[];
+  for(let l=lvl;l>=1&&!pool.length;l--)pool=POOL.filter(g=>g.sec===sec&&g.lvl===l&&g.tier<=tier);
+  for(let i=0;i<60;i++){
+    const g=pick(pool),p=g.fn();
     if(p.choices&&(p.choices.length<4||p.answer<0))continue;
     if(!p.choices&&!Number.isFinite(p.answer))continue;
-    p.sec=sec;p.lvl=lvl;return p;
+    p.sec=sec;p.lvl=g.lvl;p.topic=g.topic;if(p.rule==null)p.rule=RULE[POOL.indexOf(g)]||0;return p;
   }
   throw new Error('generator failed');
 }
 /*GEN-END*/
+/* ---------- textbook ---------- */
+const S=(inner)=>`<svg class="fig" viewBox="0 0 260 150" role="img">${inner}</svg>`;
+const AX=(ox,oy)=>`<line class="fl" x1="10" y1="${oy}" x2="250" y2="${oy}"/><line class="fl" x1="${ox}" y1="8" x2="${ox}" y2="142"/><text x="244" y="${oy-5}">x</text><text x="${ox+5}" y="16">y</text>`;
+const pathOf=(f,x0,x1)=>{let d='';for(let x=x0;x<=x1;x+=4)d+=(d?'L':'M')+x+' '+f(x).toFixed(1);return d;};
+const FIG={
+ slope:()=>S(AX(40,120)+`<line class="fs" x1="30" y1="135" x2="235" y2="32"/><line class="fd" x1="80" y1="110" x2="180" y2="110"/><line class="fd" x1="180" y1="110" x2="180" y2="60"/><circle class="dot" cx="80" cy="110" r="3.5"/><circle class="dot" cx="180" cy="60" r="3.5"/><text x="118" y="124" class="ta">run = x₂ − x₁</text><text x="186" y="90" class="ta">rise = y₂ − y₁</text><text x="52" y="100">(x₁, y₁)</text><text x="150" y="50">(x₂, y₂)</text>`),
+ systems:()=>S(`<line class="fs" x1="12" y1="95" x2="76" y2="30"/><line class="fa" x1="12" y1="35" x2="76" y2="90"/><circle class="dot" cx="45" cy="62" r="3.5"/><text x="10" y="125">one solution</text><text x="10" y="139">пересекаются</text>
+  <line class="fs" x1="98" y1="95" x2="162" y2="45"/><line class="fa" x1="98" y1="75" x2="162" y2="25"/><text x="100" y="125">no solution</text><text x="100" y="139">параллельны</text>
+  <line class="fs" x1="186" y1="90" x2="250" y2="35"/><line class="fa" x1="186" y1="90" x2="250" y2="35" stroke-dasharray="6 6"/><text x="178" y="125">infinitely many</text><text x="186" y="139">совпадают</text>`),
+ parabola:()=>S(AX(50,92)+`<path class="fs" d="${pathOf(x=>122-0.012*(x-150)**2,56,244)}"/><line class="fd" x1="150" y1="12" x2="150" y2="140"/><circle class="dot" cx="150" cy="122" r="3.5"/><circle class="dot" cx="100" cy="92" r="3"/><circle class="dot" cx="200" cy="92" r="3"/><text x="156" y="136" class="ta">vertex (h, k)</text><text x="154" y="22">axis of symmetry</text><text x="78" y="84">root</text><text x="204" y="84">root</text>`),
+ expo:()=>S(AX(40,125)+`<path class="fa" d="${pathOf(x=>125-4*Math.pow(1.0165,x-40),40,232)}"/><line class="fs" x1="40" y1="121" x2="236" y2="78"/><text x="150" y="40" class="ta">exponential: ×b</text><text x="176" y="106">linear: +m</text>`),
+ scatter:()=>S(AX(40,125)+[[60,108],[78,112],[90,95],[108,98],[120,80],[138,86],[150,68],[170,70],[186,52],[204,58],[222,38]].map(p=>`<circle class="dot2" cx="${p[0]}" cy="${p[1]}" r="3"/>`).join('')+`<line class="fa" x1="48" y1="116" x2="236" y2="38"/><text x="150" y="30" class="ta">line of best fit</text>`),
+ transversal:()=>S(`<line class="fs" x1="20" y1="50" x2="240" y2="50"/><line class="fs" x1="20" y1="105" x2="240" y2="105"/><line class="fa" x1="80" y1="15" x2="180" y2="140"/><text x="126" y="64" class="ta">a</text><text x="86" y="44" class="ta">a</text><text x="118" y="42">b</text><text x="96" y="66">b</text><text x="170" y="119" class="ta">a</text><text x="130" y="99" class="ta">a</text><text x="162" y="97">b</text><text x="140" y="121">b</text><text x="22" y="140">a + b = 180°</text>`),
+ triarea:()=>S(`<polygon class="fs" points="40,125 220,125 150,30"/><line class="fd" x1="150" y1="30" x2="150" y2="125"/><polyline class="fl" points="150,115 160,115 160,125"/><text x="124" y="141">b (base)</text><text x="156" y="82" class="ta">h (height)</text>`),
+ cyl:()=>S(`<ellipse class="fs" cx="130" cy="35" rx="55" ry="14"/><line class="fs" x1="75" y1="35" x2="75" y2="118"/><line class="fs" x1="185" y1="35" x2="185" y2="118"/><ellipse class="fs" cx="130" cy="118" rx="55" ry="14"/><line class="fa" x1="130" y1="35" x2="185" y2="35"/><circle class="dot" cx="130" cy="35" r="2.5"/><text x="152" y="30" class="ta">r</text><text x="192" y="80" class="ta">h</text>`),
+ pyth:()=>S(`<polygon class="fs" points="50,125 210,125 50,35"/><polyline class="fl" points="50,113 62,113 62,125"/><text x="34" y="84">a</text><text x="124" y="141">b</text><text x="136" y="72" class="ta">c (hypotenuse)</text>`),
+ sp45:()=>S(`<polygon class="fs" points="70,125 160,125 70,35"/><polyline class="fl" points="70,113 82,113 82,125"/><text x="54" y="84">x</text><text x="110" y="141">x</text><text x="122" y="74" class="ta">x√2</text><text x="134" y="120">45°</text><text x="74" y="56">45°</text>`),
+ sp30:()=>S(`<polygon class="fs" points="50,125 206,125 50,35"/><polyline class="fl" points="50,113 62,113 62,125"/><text x="34" y="84">x</text><text x="116" y="141">x√3</text><text x="134" y="72" class="ta">2x</text><text x="166" y="121">30°</text><text x="54" y="58">60°</text>`),
+ similar:()=>S(`<polygon class="fs" points="24,120 84,120 44,75"/><polygon class="fa" points="118,125 226,125 154,44"/><text x="48" y="134">a</text><text x="20" y="96">b</text><text x="164" y="141" class="ta">ka</text><text x="116" y="84" class="ta">kb</text>`),
+ trig:()=>S(`<polygon class="fs" points="40,125 210,125 210,35"/><polyline class="fl" points="198,125 198,113 210,113"/><text x="70" y="121" class="ta">θ</text><text x="100" y="141">adjacent</text><text x="216" y="84">opposite</text><text x="78" y="72">hypotenuse</text>`),
+ sector:()=>S(`<circle class="fs" cx="110" cy="78" r="58"/><line class="fs" x1="110" y1="78" x2="168" y2="78"/><line class="fs" x1="110" y1="78" x2="139" y2="27.8"/><path class="fa" d="M168 78 A58 58 0 0 0 139 27.8"/><circle class="dot" cx="110" cy="78" r="2.5"/><text x="124" y="70" class="ta">θ</text><text x="134" y="92">r</text><text x="164" y="46" class="ta">arc</text>`),
+ circleeq:()=>S(AX(50,118)+`<circle class="fs" cx="150" cy="66" r="42"/><line class="fa" x1="150" y1="66" x2="192" y2="66"/><circle class="dot" cx="150" cy="66" r="3"/><text x="126" y="60">(h, k)</text><text x="166" y="80" class="ta">r</text>`)
+};
+const R=(f,d,ex,fig)=>({f,d,ex,fig});
+const BOOK=[
+{id:'alg',name:'Algebra',ru:'Алгебра',topics:[
+ {id:'lin1',name:'Linear equations',ru:'Линейные уравнения',tier:0,rules:[
+  R('ax + b = c  →  x = (c − b) / a','Числа переносим в одну сторону, x оставляем в другой. Что делаешь с одной частью уравнения — делай и с другой.','3x + 7 = 22 → 3x = 15 → x = 5'),
+  R('One, no, or infinitely many solutions','После упрощения: получилось x = число — одно решение. Получилось неверное равенство вроде 0 = 5 — решений нет. Получилось 0 = 0 — решений бесконечно много: коэффициенты при x и свободные члены слева и справа совпадают.','2(x + 3) = 2x + 6 → 6 = 6 → infinitely many solutions'),
+  R('Find the expression, not x','Часто спрашивают не x, а выражение вроде 6x − 4. Быстрее получить его прямо из уравнения, чем искать x.','3x + 7 = 22 → 3x = 15 → 6x − 4 = 30 − 4 = 26')]},
+ {id:'slope',name:'Linear functions and slope',ru:'Линейные функции и наклон',tier:0,rules:[
+  R('slope = (y₂ − y₁) / (x₂ − x₁)','Наклон (slope) показывает, на сколько меняется y, когда x растёт на 1. «Rise over run»: подъём делим на сдвиг. Положительный наклон — линия идёт вверх, отрицательный — вниз.','(1, 2) и (3, 8): (8 − 2) / (3 − 1) = 3','slope'),
+  R('y = mx + b','Slope-intercept form. m — наклон, b — y-intercept: линия пересекает ось y в точке (0, b).','y = 2x − 5: наклон 2, пересечение с осью y в −5'),
+  R('y − y₁ = m(x − x₁)','Point-slope form. Удобна, когда известны наклон и одна точка.','m = 3, точка (2, 1): y − 1 = 3(x − 2)'),
+  R('Ax + By = C  →  slope = −A / B','Standard form. Чтобы увидеть наклон, вырази y. x-intercept равен C / A, y-intercept равен C / B.','2x + 3y = 12: наклон −2/3, y-intercept 4'),
+  R('Parallel: m₁ = m₂.  Perpendicular: m₁ · m₂ = −1','У параллельных прямых наклон одинаковый. У перпендикулярных — перевёрнутый и с обратным знаком.','m = 2 → у перпендикуляра наклон −1/2')]},
+ {id:'linmodel',name:'Linear models',ru:'Текстовые задачи на линейные модели',tier:0,rules:[
+  R('total = rate · x + fixed amount','Постоянная часть (плата за вход, стартовое значение) — это b. То, что умножается на количество, — наклон m.','$40 sign-up fee + $25 per month → C = 25m + 40'),
+  R('What do m and b mean?','Спрашивают, что означает число в модели. Наклон — изменение на единицу x (ищи слова per, each, every). Intercept — значение при x = 0 (initial, starting, flat fee).','h = 3t + 12: растение было 12 см и растёт на 3 см в неделю')]},
+ {id:'systems',name:'Systems of linear equations',ru:'Системы уравнений',tier:0,rules:[
+  R('Substitution','Вырази одну переменную из одного уравнения и подставь в другое.','y = 2x и x + y = 9 → x + 2x = 9 → x = 3, y = 6'),
+  R('Elimination','Сложи или вычти уравнения так, чтобы одна переменная исчезла. Если нужно, сначала умножь уравнение на число.','x + y = 10 и x − y = 4 → 2x = 14 → x = 7'),
+  R('How many solutions?','Одно решение — прямые пересекаются (наклоны разные). Нет решений — прямые параллельны: коэффициенты при x и y пропорциональны, а свободные члены нет. Бесконечно много — это одна и та же прямая: пропорционально всё.','2x + 3y = 5 и 4x + 6y = 7 → no solution','systems')]},
+ {id:'ineq',name:'Linear inequalities',ru:'Неравенства',tier:0,rules:[
+  R('Multiply or divide by a negative → flip the sign','Неравенства решаются как уравнения, но при умножении или делении на отрицательное число знак переворачивается.','−2x > 6 → x < −3'),
+  R('at least ≥ · at most ≤ · more than > · fewer than <','Слова-подсказки. At least, no less than — «не меньше» (≥). At most, no more than — «не больше» (≤).','«at least 15 tickets» → t ≥ 15'),
+  R('Maximum whole number','Если спрашивают, сколько целых предметов можно купить, реши неравенство и округли вниз.','12 + 5t ≤ 60 → t ≤ 9.6 → 9 tickets')]}]},
+{id:'adv',name:'Advanced Math',ru:'Продвинутая математика',topics:[
+ {id:'poly',name:'Equivalent expressions',ru:'Преобразование выражений',tier:0,rules:[
+  R('(a + b)(c + d) = ac + ad + bc + bd','FOIL: First, Outer, Inner, Last — каждое слагаемое первой скобки умножаем на каждое из второй.','(x + 3)(x − 5) = x² − 2x − 15'),
+  R('(a ± b)² = a² ± 2ab + b²','Квадрат суммы и разности. Средний член 2ab забывают чаще всего.','(2x + 3)² = 4x² + 12x + 9'),
+  R('a² − b² = (a − b)(a + b)','Difference of squares — разность квадратов.','x² − 49 = (x − 7)(x + 7)'),
+  R('x² + bx + c = (x + p)(x + q)','Factoring: ищи два числа, которые в сумме дают b, а в произведении c.','x² + 7x + 12 = (x + 3)(x + 4), потому что 3 + 4 = 7 и 3 · 4 = 12')]},
+ {id:'exp',name:'Exponents and radicals',ru:'Степени и корни',tier:0,rules:[
+  R('x<sup>a</sup> · x<sup>b</sup> = x<sup>a+b</sup>','При умножении степеней с одинаковым основанием показатели складываются.','x³ · x⁴ = x⁷'),
+  R('(x<sup>a</sup>)<sup>b</sup> = x<sup>ab</sup>','При возведении степени в степень показатели перемножаются.','(x³)² = x⁶'),
+  R('x<sup>a</sup> / x<sup>b</sup> = x<sup>a−b</sup>,  x<sup>0</sup> = 1,  x<sup>−a</sup> = 1 / x<sup>a</sup>','При делении показатели вычитаются. Отрицательный показатель — это «единица, делённая на степень».','x⁵ / x² = x³,  2⁻³ = 1/8'),
+  R('x<sup>1/n</sup> = ⁿ√x,  x<sup>m/n</sup> = ⁿ√(x<sup>m</sup>)','Дробный показатель — это корень: знаменатель показывает степень корня, числитель — степень числа.','8^(2/3) = (∛8)² = 4')]},
+ {id:'quad',name:'Quadratic equations',ru:'Квадратные уравнения',tier:0,rules:[
+  R('Factor, then set each factor equal to 0','Если произведение равно нулю, то один из множителей равен нулю.','x² − 5x − 14 = 0 → (x − 7)(x + 2) = 0 → x = 7 или x = −2'),
+  R('x = (−b ± √(b² − 4ac)) / 2a','Quadratic formula — работает всегда, когда не получается разложить на множители.','x² + 2x − 1 = 0 → x = (−2 ± √8) / 2 = −1 ± √2'),
+  R('Discriminant: D = b² − 4ac','D > 0 — два решения, D = 0 — одно, D < 0 — действительных решений нет. Задачи «exactly one solution» решаются через D = 0.','x² − kx + 9 = 0, одно решение → k² − 36 = 0 → k = 6'),
+  R('Sum of solutions = −b / a,  product = c / a','Теорема Виета. Позволяет найти сумму или произведение корней, не решая уравнение.','x² − 5x − 14 = 0: сумма 5, произведение −14')]},
+ {id:'vertex',name:'Parabolas',ru:'Параболы',tier:0,rules:[
+  R('y = a(x − h)² + k  →  vertex (h, k)','Vertex form. Вершина — самая низкая или самая высокая точка. Обрати внимание на знак: в (x − 3)² вершина при x = 3.','y = (x − 3)² − 4: вершина (3, −4), минимум равен −4','parabola'),
+  R('x of the vertex = −b / 2a','Для y = ax² + bx + c. Вершина лежит ровно посередине между корнями.','y = x² − 6x + 5: x = 6 / 2 = 3, y = 9 − 18 + 5 = −4'),
+  R('a > 0 opens up,  a < 0 opens down','Если a положительно, ветви вверх и у функции есть минимум. Если отрицательно — ветви вниз и есть максимум.','h = −5t² + 20t: максимум высоты при t = 2'),
+  R('Three forms of a quadratic','Standard ax² + bx + c сразу показывает y-intercept (c). Factored a(x − p)(x − q) показывает корни. Vertex form показывает вершину. В задаче «which form displays…» выбирай по этому правилу.','(x − 1)(x − 5) → корни 1 и 5')]},
+ {id:'func',name:'Functions',ru:'Функции',tier:0,rules:[
+  R('f(3) means: substitute x = 3','Запись f(x) — это значение функции в точке x. Подставь число вместо x.','f(x) = x² − 2x → f(−3) = 9 + 6 = 15'),
+  R('f(g(x))','Composition. Сначала считаем внутреннюю функцию, потом результат подставляем во внешнюю.','f(x) = 2x, g(x) = x + 1 → f(g(3)) = f(4) = 8'),
+  R('f(x) + k shifts up,  f(x − h) shifts right','Сдвиги графика. Прибавка снаружи двигает вверх-вниз. Изменение внутри скобок двигает влево-вправо, причём «наоборот»: x − 2 — вправо на 2.','y = (x − 2)² + 3: парабола сдвинута вправо на 2 и вверх на 3'),
+  R('zeros = roots = x-intercepts','Три названия одного и того же: значения x, при которых f(x) = 0, то есть точки пересечения графика с осью x.','f(x) = (x − 1)(x + 4): zeros 1 и −4')]},
+ {id:'expfn',name:'Exponential functions',ru:'Показательные функции',tier:0,rules:[
+  R('f(x) = a · b<sup>x</sup>','a — начальное значение (при x = 0). b — во сколько раз величина меняется за один шаг: b > 1 — рост (growth), 0 < b < 1 — убывание (decay).','P = 200 · 2^t: было 200, каждый час удваивается','expo'),
+  R('a(1 + r)<sup>t</sup> — growth,  a(1 − r)<sup>t</sup> — decay','Рост или падение на процент r за период. r записываем десятичной дробью.','$500 под 4% в год: 500 · 1.04^t'),
+  R('Linear or exponential?','Linear — каждый шаг прибавляется одно и то же число. Exponential — каждый шаг умножается на одно и то же число (или меняется на один и тот же процент).','+50 в год — linear; +5% в год — exponential')]},
+ {id:'radical',name:'Radical and rational equations',ru:'Уравнения с корнями и дробями',tier:0,rules:[
+  R('√(x + a) = b  →  x + a = b²','Возводим обе части в квадрат. После этого обязательно проверь ответ подстановкой: могут появиться посторонние корни (extraneous solutions).','√(x + 5) = 4 → x + 5 = 16 → x = 11'),
+  R('Factor and cancel','В дробях раскладываем числитель и знаменатель на множители и сокращаем. Значения, при которых знаменатель равен нулю, исключаются.','(x² − 9) / (x − 3) = x + 3, если x ≠ 3'),
+  R('a / b = c / d  →  ad = bc','Cross-multiplication: пропорцию решаем перемножением крест-накрест.','3 / x = 6 / 10 → 6x = 30 → x = 5')]},
+ {id:'abs',name:'Absolute value',ru:'Модуль',tier:0,rules:[
+  R('|x − h| = k  →  x = h + k or x = h − k','Модуль — расстояние до точки h. Значит решений два, по обе стороны от h. Если k < 0, решений нет.','|x − 3| = 5 → x = 8 или x = −2'),
+  R('|x| < k → −k < x < k,   |x| > k → x < −k or x > k','«Меньше» — отрезок между −k и k. «Больше» — две части снаружи.','|x − 1| < 4 → −3 < x < 5')]}]},
+{id:'psda',name:'Problem-Solving and Data Analysis',ru:'Анализ данных',topics:[
+ {id:'ratio',name:'Ratios, rates, and units',ru:'Отношения, скорости, единицы',tier:0,rules:[
+  R('a : b  →  parts a / (a + b) and b / (a + b)','Отношение a к b значит, что целое разделено на a + b равных частей.','red : blue = 2 : 3, всего 40 → red = 2/5 · 40 = 16'),
+  R('distance = rate · time','Расстояние = скорость · время. Rate — скорость любого процесса: miles per hour, pages per minute.','60 mph · 2.5 h = 150 miles'),
+  R('Unit conversion','Умножай на дроби, равные единице, так чтобы ненужные единицы сократились.','90 km/h = 90 · 1000 m / 60 min = 1500 m/min'),
+  R('Proportion: a / b = c / d','Если величины пропорциональны, их отношение постоянно. Составь пропорцию и реши крест-накрест.','3 книги стоят $12 → 7 книг: 12 / 3 · 7 = $28')]},
+ {id:'percent',name:'Percentages',ru:'Проценты',tier:0,rules:[
+  R('part = (percent / 100) · whole','Процент — это доля от целого. «What percent of 80 is 20?» → 20 / 80 = 25%.','15% of 80 = 0.15 · 80 = 12'),
+  R('percent change = (new − old) / old · 100%','Делим на старое значение, а не на новое.','от $40 до $50: 10 / 40 = 25% increase'),
+  R('Increase by p% → multiply by (1 + p/100)','Рост на 20% — умножаем на 1.2. Скидка 20% — умножаем на 0.8.','$80 со скидкой 15%: 80 · 0.85 = $68'),
+  R('Successive changes multiply','Проценты подряд нельзя складывать: второй берётся уже от нового значения.','+20%, потом −20%: 1.2 · 0.8 = 0.96, то есть −4%')]},
+ {id:'stats',name:'Mean, median, and spread',ru:'Среднее, медиана, разброс',tier:0,rules:[
+  R('mean = sum / count','Среднее арифметическое. Отсюда же: сумма = среднее · количество — так решаются задачи «какое число добавили».','2, 4, 9: mean = 15 / 3 = 5'),
+  R('median = middle value of the ordered data','Сначала упорядочи числа. Если их чётное количество, медиана — среднее двух центральных.','3, 7, 8, 10 → median = (7 + 8) / 2 = 7.5'),
+  R('range = max − min;  standard deviation = spread','Range — размах. Standard deviation показывает, насколько данные разбросаны вокруг среднего: считать его не нужно, нужно сравнивать — чем дальше значения от среднего, тем оно больше.','{5, 5, 5} — SD = 0; {1, 5, 9} — SD больше'),
+  R('Outliers pull the mean, not the median','Выброс (outlier) сильно сдвигает среднее и почти не влияет на медиану.','1, 2, 3, 4, 100: mean = 22, median = 3'),
+  R('Weighted mean','Среднее двух групп разного размера — не середина между их средними. Считай через суммы.','10 человек со средним 70 и 30 со средним 90: (700 + 2700) / 40 = 85')]},
+ {id:'scatter',name:'Scatterplots and models',ru:'Диаграммы рассеяния',tier:0,rules:[
+  R('Line of best fit','Прямая, которая лучше всего описывает точки. По ней делают прогноз: подставь x в уравнение. Наклон показывает, на сколько в среднем меняется y при росте x на 1.','y = 3x + 12 → при x = 10 прогноз 42','scatter'),
+  R('Positive / negative association','Точки идут вверх вправо — positive association, вниз — negative. Чем ближе точки к линии, тем связь сильнее.','Часы подготовки и балл: positive'),
+  R('Actual vs predicted','Точка выше линии — реальное значение больше прогноза, ниже — меньше.','Прогноз 42, фактически 45 → на 3 выше прогноза')]},
+ {id:'prob',name:'Probability and two-way tables',ru:'Вероятность и таблицы',tier:0,rules:[
+  R('P = favorable outcomes / total outcomes','Вероятность — доля подходящих исходов среди всех.','3 красных шара из 12 → P = 3/12 = 1/4'),
+  R('Conditional probability: use only the given group','Слова «given that», «of those who», «if a student from Grade 10 is selected» сужают знаменатель: берём не всех, а только названную группу.','Из 40 десятиклассников 16 ездят на автобусе → 16/40, а не 16 от всех учеников'),
+  R('P(not A) = 1 − P(A)','Вероятность противоположного события.','P(rain) = 0.3 → P(no rain) = 0.7')]},
+ {id:'infer',name:'Inference and study design',ru:'Выводы по выборке',tier:1,rules:[
+  R('Random sample → generalize to that population','Результат случайной выборки можно переносить только на ту группу, из которой выбирали.','Опросили случайных учеников одной школы → вывод только про эту школу'),
+  R('estimate ± margin of error','Только SAT. Погрешность задаёт интервал правдоподобных значений. Больше выборка — меньше погрешность.','52% ± 4% → от 48% до 56%'),
+  R('Only a randomized experiment shows cause and effect','Только SAT. Наблюдение показывает связь, но не причину. Причину доказывает эксперимент со случайным распределением по группам.','«Те, кто завтракает, учатся лучше» — это association, а не causation')]}]},
+{id:'geo',name:'Geometry and Trigonometry',ru:'Геометрия и тригонометрия',topics:[
+ {id:'angles',name:'Lines and angles',ru:'Прямые и углы',tier:0,rules:[
+  R('Straight line = 180°;  vertical angles are equal','Смежные углы (linear pair) в сумме дают 180°. Вертикальные углы равны.','Один из смежных 110° → второй 70°'),
+  R('Parallel lines cut by a transversal','Все острые углы равны между собой, все тупые — тоже, а острый и тупой в сумме дают 180°. Названия: corresponding, alternate interior — равны; same-side interior — в сумме 180°.','Один угол 65° → остальные 65° или 115°','transversal'),
+  R('Angles of a triangle add up to 180°','Сумма углов треугольника 180°. В равнобедренном (isosceles) углы при основании равны, в равностороннем (equilateral) все по 60°.','40° и 75° → третий 65°'),
+  R('Exterior angle = sum of the two remote interior angles','Внешний угол треугольника равен сумме двух внутренних, не смежных с ним.','Внутренние 50° и 60° → внешний при третьей вершине 110°')]},
+ {id:'area',name:'Area and perimeter',ru:'Площадь и периметр',tier:0,rules:[
+  R('Triangle: A = ½ · b · h','Высота — перпендикуляр к основанию, а не боковая сторона.','b = 10, h = 6 → A = 30','triarea'),
+  R('Rectangle: A = l · w,  P = 2l + 2w','Area — площадь, perimeter — периметр. Квадрат: A = s².','l = 8, w = 3 → A = 24, P = 22'),
+  R('Parallelogram: A = b · h.  Trapezoid: A = ½(b₁ + b₂) · h','У трапеции берём среднее двух оснований и умножаем на высоту.','b₁ = 6, b₂ = 10, h = 4 → A = 32')]},
+ {id:'volume',name:'Volume',ru:'Объём',tier:0,rules:[
+  R('Box: V = l · w · h.  Cylinder: V = πr²h','Объём призмы и цилиндра — площадь основания, умноженная на высоту.','r = 3, h = 5 → V = 45π','cyl'),
+  R('Cone: V = ⅓πr²h.  Pyramid: V = ⅓ · l · w · h.  Sphere: V = 4/3 · πr³','Эти формулы есть в справке (Reference) прямо в тесте — учить наизусть не обязательно, но знать, где они, нужно.','Sphere r = 3 → V = 36π'),
+  R('Scale factor k: lengths × k, areas × k², volumes × k³','Если все размеры увеличить в k раз, площадь вырастет в k² раз, объём — в k³.','Ребро куба удвоили → объём вырос в 8 раз')]},
+ {id:'pyth',name:'Right triangles',ru:'Прямоугольные треугольники',tier:0,rules:[
+  R('a² + b² = c²','Теорема Пифагора. c — гипотенуза, сторона напротив прямого угла, она всегда самая длинная.','Катеты 9 и 12 → c = √(81 + 144) = 15','pyth'),
+  R('Triples: 3-4-5, 5-12-13, 8-15-17, 7-24-25','Целые тройки и их кратные (6-8-10, 9-12-15) встречаются постоянно. Узнал тройку — не надо считать.','Катет 5, гипотенуза 13 → второй катет 12'),
+  R('45°-45°-90°: x, x, x√2','Равнобедренный прямоугольный треугольник — половина квадрата. Гипотенуза = катет · √2.','Катет 5 → гипотенуза 5√2','sp45'),
+  R('30°-60°-90°: x, x√3, 2x','Половина равностороннего треугольника. Напротив 30° — самая короткая сторона x, гипотенуза вдвое больше.','Короткий катет 4 → гипотенуза 8, второй катет 4√3','sp30')]},
+ {id:'similar',name:'Similar triangles',ru:'Подобные треугольники',tier:0,rules:[
+  R('Equal angles ↔ proportional sides','У подобных треугольников углы равны, а стороны отличаются в одно и то же число раз k. Следи за соответствием вершин: порядок букв в названии подсказывает пары.','AB = 4, DE = 12 → k = 3; BC = 5 → EF = 15','similar'),
+  R('Congruent = same shape and same size','Congruent — равные треугольники: все стороны и углы совпадают.','')]},
+ {id:'trig',name:'Trigonometry',ru:'Тригонометрия',tier:1,rules:[
+  R('sin θ = opp / hyp,  cos θ = adj / hyp,  tan θ = opp / adj','SOH-CAH-TOA. Opposite — катет напротив угла, adjacent — катет рядом с углом, hypotenuse — гипотенуза.','Треугольник 3-4-5, угол напротив стороны 3: sin = 3/5, cos = 4/5, tan = 3/4','trig'),
+  R('sin x° = cos(90° − x°)','Синус угла равен косинусу дополнительного угла (в сумме 90°).','sin 35° = cos 55°'),
+  R('Similar right triangles have the same trig ratios','Синус, косинус и тангенс зависят только от угла, а не от размера треугольника.','В треугольниках 3-4-5 и 6-8-10 синусы углов одинаковые'),
+  R('180° = π radians','Только SAT. Градусы в радианы: умножить на π / 180. Радианы в градусы: умножить на 180 / π.','60° = π/3,  3π/4 = 135°')]},
+ {id:'circle',name:'Circles',ru:'Окружности',tier:0,rules:[
+  R('C = 2πr,  A = πr²','Circumference — длина окружности, area — площадь круга. Диаметр d = 2r.','r = 5 → C = 10π, A = 25π'),
+  R('Arc length = (θ / 360) · 2πr.  Sector area = (θ / 360) · πr²','Только SAT. Дуга и сектор — это доля θ / 360 от всей окружности или всего круга.','r = 6, θ = 60° → arc = 2π, sector = 6π','sector'),
+  R('Central angle = arc.  Inscribed angle = ½ arc','Только SAT. Центральный угол равен дуге, на которую опирается. Вписанный — половине дуги.','Дуга 80° → центральный угол 80°, вписанный 40°'),
+  R('Tangent ⊥ radius','Только SAT. Касательная перпендикулярна радиусу, проведённому в точку касания.','')]},
+ {id:'circleeq',name:'Equation of a circle',ru:'Уравнение окружности',tier:2,rules:[
+  R('(x − h)² + (y − k)² = r²','Центр (h, k), радиус r. Справа стоит квадрат радиуса, не сам радиус. Знаки в скобках «обратные»: (x + 2)² значит h = −2.','(x − 3)² + (y + 1)² = 25: центр (3, −1), радиус 5','circleeq'),
+  R('Completing the square','Если уравнение раскрыто, выделяем полные квадраты: к x² + bx добавляем (b / 2)² с обеих сторон.','x² + y² − 6x + 2y − 15 = 0 → (x − 3)² + (y + 1)² = 25')]}]}
+];
+const GLOSS=[['integer','целое число'],['whole number','целое неотрицательное число'],['fraction','дробь'],['decimal','десятичная дробь'],['numerator / denominator','числитель / знаменатель'],['even / odd','чётное / нечётное'],['prime number','простое число'],['factor','множитель, делитель'],['multiple','кратное'],['sum / difference','сумма / разность'],['product / quotient','произведение / частное'],['expression','выражение'],['equation','уравнение'],['inequality','неравенство'],['variable','переменная'],['constant','константа, постоянная'],['coefficient','коэффициент'],['term','слагаемое, член'],['equivalent','равносильный, тождественно равный'],['solution','решение'],['slope','наклон, угловой коэффициент'],['x-intercept / y-intercept','точка пересечения с осью x / y'],['xy-plane','координатная плоскость'],['linear function','линейная функция'],['quadratic','квадратичный'],['vertex','вершина'],['root, zero','корень, нуль функции'],['exponent, power','показатель степени, степень'],['square root','квадратный корень'],['absolute value','модуль'],['ratio','отношение'],['rate','скорость, темп'],['proportion','пропорция'],['percent increase / decrease','рост / снижение в процентах'],['mean, average','среднее арифметическое'],['median','медиана'],['mode','мода'],['range','размах'],['standard deviation','стандартное отклонение'],['outlier','выброс'],['scatterplot','диаграмма рассеяния'],['line of best fit','линия наилучшего приближения'],['probability','вероятность'],['sample','выборка'],['margin of error','погрешность'],['perimeter','периметр'],['area','площадь'],['volume','объём'],['right angle / right triangle','прямой угол / прямоугольный треугольник'],['leg / hypotenuse','катет / гипотенуза'],['isosceles / equilateral','равнобедренный / равносторонний'],['similar / congruent','подобные / равные'],['parallel / perpendicular','параллельные / перпендикулярные'],['transversal','секущая'],['radius / diameter','радиус / диаметр'],['circumference','длина окружности'],['arc / sector','дуга / сектор'],['tangent','касательная'],['cylinder / cone / sphere','цилиндр / конус / шар'],['at least / at most','не меньше / не больше'],['in terms of','выразить через'],['which of the following','какой из следующих вариантов'],['what is the value of','чему равно значение']];
 
+/* ---------- app ---------- */
+const NQ=22,MOD_MIN=35;
+const TESTS={
+  p89:{name:'PSAT 8/9',who:'8–9 класс',scale:[120,720],avg:95,tier:0,lv:[.5,.38,.12],w:{alg:.425,adv:.2,psda:.25,geo:.125},note:'Больше всего алгебры. Тригонометрии нет.'},
+  p10:{name:'PSAT 10',who:'10 класс',scale:[160,760],avg:95,tier:1,lv:[.35,.45,.2],w:{alg:.35,adv:.325,psda:.2,geo:.125},note:'Появляется тригонометрия прямоугольного треугольника.'},
+  nmsqt:{name:'PSAT/NMSQT',who:'10–11 класс',scale:[160,760],avg:95,tier:1,lv:[.3,.45,.25],w:{alg:.35,adv:.325,psda:.2,geo:.125},note:'Те же темы, что в PSAT 10, задачи немного сложнее.'},
+  sat:{name:'SAT',who:'11–12 класс',scale:[200,800],avg:95,tier:2,lv:[.25,.4,.35],w:{alg:.35,adv:.35,psda:.15,geo:.15},note:'Добавляются окружности, радианы, погрешность выборки.'}
+};
 const SECS=[['all','Все секции'],['alg','Algebra'],['adv','Advanced Math'],['psda','Data Analysis'],['geo','Geometry & Trig']];
 const SEC_NAME={alg:'Algebra',adv:'Advanced Math',psda:'Problem-Solving & Data Analysis',geo:'Geometry & Trigonometry'};
 const LVLS=[[0,'Микс'],[1,'Лёгкая'],[2,'Средняя'],[3,'Сложная']];
 const LVL_NAME={1:'лёгкая',2:'средняя',3:'сложная'};
 const $=id=>document.getElementById(id);
+const EMBED=/github\.io$/.test(location.hostname)||!!(window.Telegram&&Telegram.WebApp&&Telegram.WebApp.initData);
+const DESMOS='https://www.desmos.com/testing/cb-digital-sat/graphing';
+const TOOLS=[['desmos','Desmos',DESMOS],['ggb','GeoGebra',"https://www.geogebra.org/classic"]];
 
-let stats={s:{alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]},streak:0};
-let pref={sec:'all',lvl:0};
-try{const s=JSON.parse(localStorage.getItem('psat10-stats'));if(s&&s.s)stats=s;const p=JSON.parse(localStorage.getItem('psat10-pref'));if(p&&p.sec)pref=p;}catch(e){}
-const save=()=>{try{localStorage.setItem('psat10-stats',JSON.stringify(stats));localStorage.setItem('psat10-pref',JSON.stringify(pref));}catch(e){}};
+const load=(k,d)=>{try{const v=JSON.parse(localStorage.getItem(k));return v??d;}catch(e){return d;}};
+const store=(k,v)=>{try{localStorage.setItem(k,JSON.stringify(v));}catch(e){}};
+const blank=()=>({s:{alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]},streak:0});
+let stats=load('satmath-stats',blank());if(!stats.s)stats=blank();
+let pref=Object.assign({sec:'all',lvl:0,test:'p10',tool:'desmos'},load('satmath-pref',{}));if(!TESTS[pref.test])pref.test='p10';if(!TOOLS.some(t=>t[0]===pref.tool))pref.tool='desmos';
+let hist=load('satmath-hist',[]);
+const save=()=>{store('satmath-stats',stats);store('satmath-pref',pref);};
+const fmtTime=s=>Math.floor(s/60)+':'+String(Math.floor(s%60)).padStart(2,'0');
+function wpick(ws){let r=Math.random()*ws.reduce((a,b)=>a+b,0);for(let i=0;i<ws.length;i++){r-=ws[i];if(r<0)return i;}return ws.length-1;}
 
-let cur=null,chosen=null,done=false,t0=0,tick=null;
+/* shared question markup */
+function qHTML(p,a,locked){
+  let h=`<div class="q">${p.q}</div>`;
+  if(p.choices)h+=`<div class="opts">${p.choices.map((c,i)=>{let cls='opt';if(locked){if(i===p.answer)cls+=' ok';else if(i===a)cls+=' no';}
+    return `<button class="${cls}" data-i="${i}" aria-pressed="${!locked&&a===i}" ${locked?'disabled':''}><i>${'ABCD'[i]}</i><span>${c}</span></button>`;}).join('')}</div>`;
+  else h+=`<label class="grid-in"><span>Впиши ответ числом</span><input class="gi" inputmode="text" autocomplete="off" placeholder="Например, 12" value="${a==null?'':String(a).replace(/"/g,'')}" ${locked?'disabled':''}></label>`;
+  return h;
+}
+const answered=(p,a)=>p.choices?a!=null:(a!=null&&String(a).trim()!=='');
+function isRight(p,a){
+  if(!answered(p,a))return false;
+  if(p.choices)return a===p.answer;
+  const v=Number(String(a).trim().replace('−','-').replace(',','.'));
+  return Number.isFinite(v)&&Math.abs(v-p.answer)<1e-9;
+}
+const rightText=p=>p.choices?'ABCD'[p.answer]+') '+p.choices[p.answer]:m(p.answer);
+const bookLink=p=>`<button class="btn ghost sm" data-topic="${p.topic}" data-rule="${p.rule}">Открыть правило в учебнике</button>`;
 
+/* ---------- views ---------- */
+let view='practice',backTo=null,keepTest=false;
+function show(v){
+  view=v;
+  for(const k of ['practice','test','book','tools','settings'])$('v-'+k).hidden=k!==v;
+  document.querySelectorAll('#tabs button').forEach(b=>b.setAttribute('aria-current',b.dataset.v===v));
+  $('bookBack').hidden=!(v==='book'&&backTo);
+  if(v==='test'&&!keepTest)renderTest();
+  if(v==='tools')renderTools();
+  if(v==='settings')renderSettings();
+  window.scrollTo(0,keepTest?backY:0);
+}
+$('tabs').addEventListener('click',e=>{const b=e.target.closest('button');if(b){backTo=null;show(b.dataset.v);}});
+$('testChip').addEventListener('click',()=>show('settings'));
+
+/* ---------- practice ---------- */
+let P={cur:null,ans:null,done:false,t0:0},tick=null;
 function renderFilters(){
+  $('testChip').textContent=TESTS[pref.test].name;
   $('secs').innerHTML=SECS.map(([k,n])=>`<button class="chip" data-k="${k}" aria-pressed="${pref.sec===k}">${n}</button>`).join('');
   $('lvls').innerHTML=LVLS.map(([k,n])=>`<button data-k="${k}" aria-pressed="${pref.lvl===k}">${n}</button>`).join('');
 }
@@ -343,49 +670,203 @@ function renderStats(){
   $('rows').innerHTML=Object.keys(SEC_NAME).map(k=>{const [a,b]=stats.s[k];
     return `<div class="row"><span>${SEC_NAME[k]}</span><span>${b?`${a} из ${b}`:'пока нет ответов'}</span><div class="bar"><div style="width:${b?a/b*100:0}%"></div></div></div>`;}).join('');
 }
-function fmtTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
-function startTimer(){
-  clearInterval(tick);t0=Date.now();$('timer').textContent='0:00';$('timer').classList.remove('over');
-  tick=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);$('timer').textContent=fmtTime(s);$('timer').classList.toggle('over',s>95);},1000);
+function paintTimer(){
+  const s=Math.floor((Date.now()-P.t0)/1000),avg=TESTS[pref.test].avg,el=$('timer');
+  el.textContent=fmtTime(s);el.className='tm '+(s>avg?'over':s>=avg-20?'warn':'ok');
+  el.title=`В среднем на вопрос ${fmtTime(avg)}`;
 }
 function next(){
-  const sec=pref.sec==='all'?pick(Object.keys(SEC_NAME)):pref.sec,lvl=pref.lvl||ri(1,3);
-  cur=generate(sec,lvl);chosen=null;done=false;
-  $('tSec').textContent=SEC_NAME[sec];$('tLvl').textContent=LVL_NAME[lvl];
-  $('q').innerHTML=cur.q;$('fb').hidden=true;
-  if(cur.choices){
-    $('gridWrap').hidden=true;$('opts').hidden=false;
-    $('opts').innerHTML=cur.choices.map((c,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><i>${'ABCD'[i]}</i><span>${c}</span></button>`).join('');
-  }else{
-    $('opts').hidden=true;$('opts').innerHTML='';$('gridWrap').hidden=false;$('gridInput').value='';$('gridInput').disabled=false;
-  }
-  $('go').textContent='Проверить';$('go').disabled=true;startTimer();
+  const T0=TESTS[pref.test],sec=pref.sec==='all'?Object.keys(T0.w)[wpick(Object.values(T0.w))]:pref.sec,lvl=pref.lvl||wpick(T0.lv)+1;
+  P={cur:generate(sec,lvl,T0.tier),ans:null,done:false,t0:Date.now()};
+  $('tSec').textContent=SEC_NAME[sec];$('tLvl').textContent=LVL_NAME[P.cur.lvl];
+  $('pQ').innerHTML=qHTML(P.cur,null,false);$('fb').hidden=true;
+  $('go').textContent='Проверить';$('go').disabled=true;
+  clearInterval(tick);paintTimer();tick=setInterval(paintTimer,1000);
 }
 function check(){
-  let ok,right;
-  if(cur.choices){ok=chosen===cur.answer;right='ABCD'[cur.answer]+') '+cur.choices[cur.answer];
-    document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===cur.answer)b.classList.add('ok');else if(i===chosen)b.classList.add('no');});
-  }else{
-    const v=Number($('gridInput').value.trim().replace('−','-').replace(',','.'));
-    ok=Number.isFinite(v)&&Math.abs(v-cur.answer)<1e-9;right=m(cur.answer);$('gridInput').disabled=true;
-  }
-  clearInterval(tick);done=true;
-  stats.s[cur.sec][1]++;if(ok){stats.s[cur.sec][0]++;stats.streak++;}else stats.streak=0;save();renderStats();
+  const p=P.cur,ok=isRight(p,P.ans);clearInterval(tick);P.done=true;
+  stats.s[p.sec][1]++;if(ok){stats.s[p.sec][0]++;stats.streak++;}else stats.streak=0;save();renderStats();
+  $('pQ').innerHTML=qHTML(p,P.ans,true);
   const fb=$('fb');fb.hidden=false;fb.className='fb '+(ok?'good':'bad');
-  fb.innerHTML=`<b>${ok?'Верно':'Неверно. Правильный ответ: '+right}</b><p>${cur.expl}</p>`;
+  fb.innerHTML=`<b>${ok?'Верно':'Неверно. Правильный ответ: '+rightText(p)}</b><p>${p.expl}</p>${bookLink(p)}`;
   $('go').textContent='Следующая задача';$('go').disabled=false;
 }
 $('secs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref.sec=b.dataset.k;save();renderFilters();next();});
 $('lvls').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref.lvl=+b.dataset.k;save();renderFilters();next();});
-$('opts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||done)return;chosen=+b.dataset.i;
-  document.querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-pressed',o===b));$('go').disabled=false;});
-$('gridInput').addEventListener('input',()=>{if(!done)$('go').disabled=!$('gridInput').value.trim();});
-$('gridInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('go').disabled)$('go').click();});
-$('go').addEventListener('click',()=>{done?next():check();});
-$('reset').addEventListener('click',()=>{stats={s:{alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]},streak:0};save();renderStats();});
+$('pQ').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||P.done)return;P.ans=+b.dataset.i;
+  $('pQ').querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-pressed',o===b));$('go').disabled=false;});
+$('pQ').addEventListener('input',e=>{if(e.target.classList.contains('gi')&&!P.done){P.ans=e.target.value;$('go').disabled=!e.target.value.trim();}});
+$('pQ').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('go').disabled)$('go').click();});
+$('go').addEventListener('click',()=>{P.done?next():check();});
 
-try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();document.documentElement.dataset.theme=tg.colorScheme==='dark'?'dark':'light';}}catch(e){}
-renderFilters();renderStats();next();
+/* ---------- dialog ---------- */
+let dlgCb=null;
+function ask(text,yes,cb){$('dlgText').textContent=text;$('dlgYes').textContent=yes;dlgCb=cb;$('dlg').hidden=false;}
+$('dlgNo').addEventListener('click',()=>{$('dlg').hidden=true;});
+$('dlgYes').addEventListener('click',()=>{$('dlg').hidden=true;if(dlgCb)dlgCb();});
+
+/* ---------- timed test ---------- */
+let T=null,tTick=null;
+function domCounts(w,n){const ks=Object.keys(w),raw=ks.map(k=>w[k]*n),fl=raw.map(Math.floor);let rest=n-fl.reduce((a,b)=>a+b,0);
+  raw.map((v,i)=>[v-fl[i],i]).sort((a,b)=>b[0]-a[0]).slice(0,rest).forEach(o=>fl[o[1]]++);
+  return Object.fromEntries(ks.map((k,i)=>[k,fl[i]]));}
+function buildModule(tk,variant){
+  const t=TESTS[tk];let lv=t.lv.slice();
+  if(variant==='hard')lv=[lv[0]*.4,lv[1],lv[2]*2.2];
+  if(variant==='easy')lv=[lv[0]*1.9,lv[1],lv[2]*.3];
+  const c=domCounts(t.w,NQ),qs=[];
+  for(const s in c)for(let i=0;i<c[s];i++)qs.push(generate(s,wpick(lv)+1,t.tier));
+  return shuffle(qs).sort((a,b)=>a.lvl-b.lvl);
+}
+function startTest(mode){
+  T={test:pref.test,mode,mod:0,mods:[buildModule(pref.test,'base')],ans:[[]],flag:[[]],i:0,used:[],path:null,phase:'run',pal:false};
+  startClock();renderTest();
+}
+function startClock(){T.end=Date.now()+MOD_MIN*60000;T.t0=Date.now();clearInterval(tTick);tTick=setInterval(paintClock,1000);}
+function paintClock(){
+  if(!T||T.phase!=='run'){clearInterval(tTick);return;}
+  const left=Math.max(0,Math.round((T.end-Date.now())/1000)),el=$('tClock');
+  if(el){el.textContent=fmtTime(left);el.className='tm '+(left<=60?'over':left<=300?'warn':'ok');}
+  if(left<=0)endModule();
+}
+function endModule(){
+  clearInterval(tTick);T.used[T.mod]=Math.min(MOD_MIN*60,Math.round((Date.now()-T.t0)/1000));
+  if(T.mode==='full'&&T.mod===0){
+    const c=T.mods[0].filter((p,i)=>isRight(p,T.ans[0][i])).length;
+    T.path=c/NQ>=.6?'hard':'easy';T.mods.push(buildModule(T.test,T.path));T.ans.push([]);T.flag.push([]);T.phase='break';
+  }else finishTest();
+  if(view==='test')renderTest();
+}
+function finishTest(){
+  const t=TESTS[T.test],W={1:1,2:1.25,3:1.5};let got=0,all=0,c=0,n=0;const dom={alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]};
+  T.mods.forEach((qs,mi)=>qs.forEach((p,i)=>{const ok=isRight(p,T.ans[mi][i]);all+=W[p.lvl];n++;dom[p.sec][1]++;if(ok){got+=W[p.lvl];c++;dom[p.sec][0]++;}}));
+  let f=got/all;if(T.path==='easy')f=Math.min(f,.74);
+  const score=Math.round((t.scale[0]+(t.scale[1]-t.scale[0])*f)/10)*10;
+  T.res={c,n,dom,score,time:T.used.reduce((a,b)=>a+b,0)};T.phase='done';
+  hist.unshift({d:new Date().toLocaleDateString('ru-RU'),test:t.name,mode:T.mode,c,n,score});hist=hist.slice(0,10);store('satmath-hist',hist);
+}
+function renderTest(){
+  const el=$('v-test'),t=TESTS[pref.test];
+  if(!T||T.phase==='idle'){
+    el.innerHTML=`<div class="card"><h2>Тест на время: ${t.name} Math</h2>
+      <p>Как на настоящем экзамене: модуль из ${NQ} вопросов на ${MOD_MIN} минут, в среднем ${fmtTime(t.avg)} на вопрос. Можно возвращаться к вопросам и отмечать их для проверки. Второй модуль подбирается по результату первого: решил хорошо — он будет сложнее.</p>
+      <p class="muted">Desmos доступен на всех вопросах. После теста — результат, оценка балла и разбор каждого задания.</p>
+      <button class="btn" data-start="full">Полный тест: 2 модуля, ${MOD_MIN*2} минут</button>
+      <button class="btn ghost" data-start="one">Один модуль: ${NQ} вопроса, ${MOD_MIN} минут</button></div>
+      <div class="card"><h3>Прошлые результаты</h3><div>${hist.length?hist.map(h=>`<div class="hist"><span>${h.d} · ${h.test} · ${h.mode==='full'?'полный':'1 модуль'}</span><b>${h.c}/${h.n} · ≈${h.score}</b></div>`).join(''):'<p class="muted">Здесь появятся результаты пройденных тестов.</p>'}</div></div>`;
+    return;
+  }
+  if(T.phase==='break'){
+    el.innerHTML=`<div class="card"><h2>Модуль 1 завершён</h2><p>Ответы сохранены. Второй модуль подобран по результату первого. Таймер запустится, когда нажмёшь кнопку.</p><button class="btn" data-next-mod>Начать модуль 2</button></div>`;return;
+  }
+  if(T.phase==='done'){renderResult(el);return;}
+  const qs=T.mods[T.mod],p=qs[T.i],a=T.ans[T.mod][T.i],fl=T.flag[T.mod],nAns=qs.filter((q,i)=>answered(q,T.ans[T.mod][i])).length;
+  el.innerHTML=`<div class="card">
+    <div class="thead"><b>${T.mode==='full'?`Модуль ${T.mod+1} из 2 · `:''}Вопрос ${T.i+1} из ${NQ}</b><div class="metaR"><button class="mini" data-calc>Desmos</button><span class="tm ok" id="tClock">${fmtTime(Math.max(0,Math.round((T.end-Date.now())/1000)))}</span></div></div>
+    <div class="qwrap" id="tQ">${qHTML(p,a,false)}</div>
+    <div class="btnrow"><button class="btn ghost" data-nav="-1" ${T.i===0?'disabled':''}>Назад</button><button class="btn ghost" data-flag>${fl[T.i]?'Снять отметку':'Отметить'}</button><button class="btn" data-nav="1" ${T.i===NQ-1?'disabled':''}>Далее</button></div>
+    <button class="link" data-pal>${T.pal?'Скрыть список вопросов':`Все вопросы · отвечено ${nAns} из ${NQ}`}</button>
+    ${T.pal?`<div class="pal">${qs.map((q,i)=>`<button data-go="${i}" class="${answered(q,T.ans[T.mod][i])?'ans':''} ${fl[i]?'flag':''} ${i===T.i?'cur':''}">${i+1}</button>`).join('')}</div><p class="muted">Закрашены отвеченные, с жёлтой полоской — отмеченные для проверки.</p>`:''}
+    <button class="btn ghost" data-end>Завершить модуль</button></div>`;
+  paintClock();
+}
+function renderResult(el){
+  const r=T.res,t=TESTS[T.test];let k=0;
+  el.innerHTML=`<div class="card"><h3>${t.name} Math · ${T.mode==='full'?'полный тест':'один модуль'}</h3>
+    <div class="score">≈ ${r.score} <small>из ${t.scale[1]}</small></div>
+    <p>Верно ${r.c} из ${r.n} · время ${fmtTime(r.time)}${T.path?` · второй модуль был ${T.path==='hard'?'сложнее':'легче'}`:''}</p>
+    <p class="muted">Балл приблизительный: настоящая шкала College Board учитывает сложность каждого вопроса по закрытой формуле.</p>
+    <div class="rows">${Object.keys(SEC_NAME).map(s=>{const [a,b]=r.dom[s];return b?`<div class="row"><span>${SEC_NAME[s]}</span><span>${a} из ${b}</span><div class="bar"><div style="width:${a/b*100}%"></div></div></div>`:'';}).join('')}</div>
+    <div class="btnrow"><button class="btn ghost" data-reset>Новый тест</button><button class="btn" data-practice>К тренировке</button></div></div>
+    <h3>Разбор заданий</h3>
+    ${T.mods.map((qs,mi)=>qs.map((p,i)=>{k++;const a=T.ans[mi][i],has=answered(p,a),ok=isRight(p,a);
+      return `<details><summary><span>№${k} · ${SEC_NAME[p.sec]} <small>· ${LVL_NAME[p.lvl]}</small></span><span class="st ${ok?'ok':has?'no':'skip'}">${ok?'верно':has?'ошибка':'пропуск'}</span></summary>
+        <div class="in">${qHTML(p,a,true)}<div class="fb ${ok?'good':'bad'}"><b>${ok?'Верно':'Правильный ответ: '+rightText(p)}</b><p>${p.expl}</p>${bookLink(p)}</div></div></details>`;}).join('')).join('')}`;
+}
+$('v-test').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;const d=b.dataset;
+  if(d.start)startTest(d.start);
+  else if('nextMod' in d){T.mod=1;T.i=0;T.pal=false;T.phase='run';startClock();renderTest();}
+  else if(d.nav){T.i=Math.max(0,Math.min(NQ-1,T.i+ +d.nav));renderTest();}
+  else if(d.go){T.i=+d.go;renderTest();}
+  else if('flag' in d){T.flag[T.mod][T.i]=!T.flag[T.mod][T.i];renderTest();}
+  else if('pal' in d){T.pal=!T.pal;renderTest();}
+  else if('end' in d){const left=T.mods[T.mod].filter((q,i)=>!answered(q,T.ans[T.mod][i])).length;
+    ask(left?`Без ответа осталось вопросов: ${left}. Завершить модуль? Вернуться к нему будет нельзя.`:'Завершить модуль? Вернуться к нему будет нельзя.','Завершить',endModule);}
+  else if('reset' in d){T=null;renderTest();}
+  else if('practice' in d){show('practice');}
+  else if(b.classList.contains('opt')&&T&&T.phase==='run'){T.ans[T.mod][T.i]=+d.i;$('tQ').querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-pressed',o===b));}
+});
+$('v-test').addEventListener('input',e=>{if(e.target.classList.contains('gi')&&T&&T.phase==='run')T.ans[T.mod][T.i]=e.target.value;});
+
+/* ---------- textbook ---------- */
+const topicOf=id=>{for(const d of BOOK)for(const t of d.topics)if(t.id===id)return t;return BOOK[0].topics[0];};
+const tierBadge=t=>t.tier===2?'<span class="badge">только SAT</span>':t.tier===1?'<span class="badge">нет в PSAT 8/9</span>':'';
+function renderBook(){
+  $('v-book').innerHTML=`<button class="btn sm" id="bookBack" hidden>← Вернуться к задаче</button><input class="search" id="bookSearch" type="search" placeholder="Поиск: slope, проценты, vertex…" autocomplete="off">
+    <p class="muted">Правила записаны как на тесте, по-английски. Нажми на правило — откроется пояснение на русском с примером.</p>
+    ${BOOK.map(d=>`<div class="dom" data-dom><h2>${d.name} <span class="muted">· ${d.ru}</span></h2>
+      ${d.topics.map(t=>`<details id="topic-${t.id}"><summary><span>${t.name} <small>· ${t.ru}</small></span>${tierBadge(t)}</summary><div class="in">
+        ${t.rules.map(r=>`<div class="rule"><button aria-expanded="false"><span>${r.f}</span></button><div class="ex"><p>${r.d}</p>${r.ex?`<code>${r.ex}</code>`:''}${r.fig?FIG[r.fig]():''}</div></div>`).join('')}
+      </div></details>`).join('')}</div>`).join('')}
+    <div class="dom" data-dom><h2>Словарь терминов <span class="muted">· ${GLOSS.length} слов</span></h2>
+      <details id="gloss"><summary><span>English → русский</span></summary><div class="in"><div class="gl">${GLOSS.map(g=>`<b data-g>${g[0]}</b><span>${g[1]}</span>`).join('')}</div></div></details></div>`;
+}
+$('v-book').addEventListener('click',e=>{if(e.target.id==='bookBack'){const v=backTo;backTo=null;keepTest=true;show(v);keepTest=false;return;}const b=e.target.closest('.rule>button');if(!b)return;const r=b.parentElement,o=r.classList.toggle('open');b.setAttribute('aria-expanded',o);});
+$('v-book').addEventListener('input',e=>{
+  if(e.target.id!=='bookSearch')return;const q=e.target.value.trim().toLowerCase();
+  $('v-book').querySelectorAll('details').forEach(d=>{
+    if(d.id==='gloss'){let any=false;d.querySelectorAll('[data-g]').forEach(g=>{const hit=!q||(g.textContent+g.nextElementSibling.textContent).toLowerCase().includes(q);g.hidden=g.nextElementSibling.hidden=!hit;any=any||hit;});d.hidden=!any;d.open=!!q&&any;return;}
+    const head=d.querySelector('summary').textContent.toLowerCase().includes(q);let any=false;
+    d.querySelectorAll('.rule').forEach(r=>{const hit=!q||head||r.textContent.toLowerCase().includes(q);r.hidden=!hit;any=any||hit;});
+    d.hidden=!any;d.open=!!q&&any;
+  });
+  $('v-book').querySelectorAll('[data-dom]').forEach(s=>{s.hidden=![...s.querySelectorAll('details')].some(d=>!d.hidden);});
+});
+function openTopic(id,rule){
+  backTo=view==='book'?backTo:view;const y=window.scrollY;backY=y;show('book');const s=$('bookSearch');if(s.value){s.value='';s.dispatchEvent(new Event('input',{bubbles:true}));}
+  const d=$('topic-'+id);if(!d)return;d.open=true;document.querySelectorAll('.rule.hit').forEach(r=>r.classList.remove('hit'));
+  const rs=d.querySelectorAll('.rule'),t=rs[rule]||rs[0];rs.forEach(r=>{const o=r===t;r.classList.toggle('open',o);r.firstElementChild.setAttribute('aria-expanded',o);});
+  t.classList.add('hit');t.scrollIntoView({block:'center'});
+}
+let backY=0;
+document.addEventListener('click',e=>{const b=e.target.closest('[data-topic]');if(b)openTopic(b.dataset.topic,+b.dataset.rule||0);
+  if(e.target.closest('[data-calc]'))openCalc();});
+
+/* ---------- calculators ---------- */
+const frames={};
+function frameFor(key){
+  const tool=TOOLS.find(t=>t[0]===key);
+  if(!EMBED){const d=document.createElement('div');d.className='ph';
+    d.innerHTML=`<b>${tool[1]}</b><p class="muted">В предпросмотре внешние сайты не встраиваются. В боте здесь откроется калькулятор.</p><a href="${tool[2]}" target="_blank" rel="noopener">Открыть ${tool[1]} в браузере</a>`;return d;}
+  if(!frames[key]){const f=document.createElement('iframe');f.src=tool[2];f.title=tool[1];f.allow='fullscreen';frames[key]=f;}
+  return frames[key];
+}
+function openCalc(){const box=$('calcFrame');if(!box.firstChild)box.appendChild(frameFor('desmos'));else if(EMBED&&box.firstChild!==frames.desmos)box.replaceChildren(frames.desmos);$('calc').hidden=false;}
+$('calcClose').addEventListener('click',()=>{$('calc').hidden=true;});
+function renderTools(){
+  $('toolSeg').innerHTML=TOOLS.map(t=>`<button data-k="${t[0]}" aria-pressed="${pref.tool===t[0]}">${t[1]}</button>`).join('');
+  $('toolBox').replaceChildren(frameFor(pref.tool));
+  $('toolNote').innerHTML=pref.tool==='desmos'?'Это тот же графический калькулятор Desmos, что встроен в настоящий тест. Он же открывается кнопкой Desmos в тренировке и в тесте.':'GeoGebra на экзамене нет. Здесь она для разбора задач: построить чертёж, проверить углы и длины.';
+}
+$('toolSeg').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref.tool=b.dataset.k;save();renderTools();});
+
+/* ---------- settings ---------- */
+function renderSettings(){
+  const pct=w=>Object.keys(w).map(k=>`${SEC_NAME[k].split(' ')[0]} ${Math.round(w[k]*1000)/10}%`).join(' · ');
+  $('v-settings').innerHTML=`<div class="group"><h3>Какой тест готовишь</h3>
+    ${Object.keys(TESTS).map(k=>{const t=TESTS[k];return `<button class="pick" data-test="${k}" aria-pressed="${pref.test===k}"><b>${t.name} <span>· ${t.who} · шкала ${t.scale[0]}–${t.scale[1]}</span></b><span>${t.note}</span><span>${pct(t.w)}</span></button>`;}).join('')}</div>
+    <p class="muted">От выбора зависят сложность и набор тем в тренировке, состав модулей в тесте на время и шкала баллов. Формат у всех четырёх одинаковый: 2 модуля по ${NQ} вопроса, ${MOD_MIN} минут на модуль.</p>
+    <div class="card"><h3>Статистика</h3><p class="muted">Счётчики тренировки и история тестов хранятся на этом устройстве.</p><button class="btn ghost" data-wipe>Сбросить статистику</button></div>`;
+}
+$('v-settings').addEventListener('click',e=>{
+  const b=e.target.closest('button');if(!b)return;
+  if(b.dataset.test){pref.test=b.dataset.test;save();renderFilters();renderSettings();next();if(T&&T.phase!=='run'&&T.phase!=='break')T=null;}
+  else if('wipe' in b.dataset)ask('Сбросить счётчики тренировки и историю тестов?','Сбросить',()=>{stats=blank();hist=[];save();store('satmath-hist',hist);renderStats();});
+});
+
+try{const tg=window.Telegram&&Telegram.WebApp;if(tg&&tg.initData){tg.ready();tg.expand();document.documentElement.dataset.theme=tg.colorScheme==='dark'?'dark':'light';}}catch(e){}
+renderFilters();renderStats();renderBook();next();
 </script>
 </body>
 </html>
