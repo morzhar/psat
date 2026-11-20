@@ -162,6 +162,22 @@ details>.in{padding:0 14px 14px;display:flex;flex-direction:column;gap:12px}
 .btn.sm{padding:9px 12px;font-size:14px;width:auto;align-self:flex-start}
 .rule.hit{border-color:var(--accent);box-shadow:0 0 0 3px var(--accent-soft)}
 #bookBack{position:sticky;top:8px;z-index:3}
+
+.plot{display:block;width:100%;max-width:290px;height:auto;margin:4px auto 10px;background:var(--surface)}
+.plot.wide{max-width:340px}
+.plot text{font-family:var(--font-ui);font-size:9.5px;fill:var(--muted)}
+.plot .gt{font-size:11px;font-style:italic;fill:var(--ink)}
+.plot .gg{stroke:var(--line);stroke-width:1}
+.plot .ga{stroke:var(--ink);stroke-width:1.4}
+.plot .gc{stroke:var(--accent);stroke-width:2.2;fill:none}
+.plot .gc2{stroke:var(--ink);stroke-width:2.2;fill:none}
+.plot .gdash{stroke-dasharray:6 5}
+.plot .gp{fill:var(--ink)}
+.plot .gb{fill:var(--accent)}
+.plot .gsh{fill:var(--accent);opacity:.18}
+.q .fig.qf{display:block;max-width:290px;margin:4px auto 2px}
+.q .fig.qf text{font-size:13px;fill:var(--ink)}
+.q .cap{display:block;text-align:center;font-family:var(--font-ui);font-size:12px;color:var(--muted);margin-bottom:8px}
 </style>
 </head>
 <body>
@@ -240,7 +256,7 @@ function mc(correct,cands,fmt){
 const money=v=>'$'+(Number.isInteger(v)?v:v.toFixed(2));
 
 const POOL=[];
-function add(sec,lvl,tier,topic,fn){POOL.push({sec,lvl,tier,topic,fn});}
+function add(sec,lvl,tier,topic,fn,rule){POOL.push({sec,lvl,tier,topic,fn,rule});}
 
 /* ---------- Algebra ---------- */
 add('alg',1,0,'lin1',()=>{const a=ri(2,9),x=ri(2,12),b=ri(1,20),c=a*x+b;
@@ -252,30 +268,30 @@ add('alg',1,0,'linmodel',()=>{const fee=ri(2,9)*5;let rate;do{rate=ri(2,9)*5;}wh
     ...mc(`C = ${rate}m + ${fee}`,[`C = ${fee}m + ${rate}`,`C = ${fee+rate}m`,`C = ${rate}(m + ${fee})`]),
     expl:`Разовая плата $${fee} — это константа, а $${rate} умножается на количество m. Получаем C = ${rate}m + ${fee}.`};});
 add('alg',1,0,'slope',()=>{const x1=ri(-5,3),y1=ri(-6,6),dx=ri(1,4),k=nz(-4,4),x2=x1+dx,y2=y1+k*dx;
-  return {q:`A line in the xy-plane passes through the points (${m(x1)}, ${m(y1)}) and (${m(x2)}, ${m(y2)}). What is the slope of the line?`,answer:k,
+  return {q:`A line in the xy-plane passes through the points (${m(x1)}, ${m(y1)}) and (${m(x2)}, ${m(y2)}). What is the slope of the line?`,answer:k,d:[-k,[dx,k*dx],k*dx,k+1],
     expl:`Наклон = (y₂ − y₁)/(x₂ − x₁) = (${m(y2)} − (${m(y1)}))/(${m(x2)} − (${m(x1)})) = ${m(k*dx)}/${dx} = ${m(k)}.`};});
 
 add('alg',2,0,'systems',()=>{const x=ri(1,9),y=ri(1,9),a=ri(2,5),b=ri(2,5);
-  return {q:`${eq(`${a}x + y = ${a*x+y}`)}${eq(`x + ${b}y = ${x+b*y}`)}The solution to the given system of equations is (x, y). What is the value of x + y?`,answer:x+y,
+  return {q:`${eq(`${a}x + y = ${a*x+y}`)}${eq(`x + ${b}y = ${x+b*y}`)}The solution to the given system of equations is (x, y). What is the value of x + y?`,answer:x+y,d:[x,y,x*y,a*x+y],
     expl:`Из первого уравнения y = ${a*x+y} − ${a}x. Подставляем во второе и получаем x = ${x}, затем y = ${y}. Сумма: ${x+y}.`};});
 add('alg',2,0,'lin1',()=>{const a=ri(2,6),x=ri(2,9),b=ri(1,15),k=pick([2,3]),n=ri(1,9),c=a*x+b,ans=k*a*x-n;
   return {q:`If ${a}x + ${b} = ${c}, what is the value of ${k*a}x − ${n}?`,...mc(ans,[a*x-n,x,k*a*x+n,k*c-n]),
     expl:`Из уравнения ${a}x = ${c-b}. Тогда ${k*a}x = ${k} · ${c-b} = ${k*(c-b)}, и ${k*a}x − ${n} = ${ans}. Находить сам x не обязательно.`};});
 add('alg',2,0,'ineq',()=>{const p=ri(3,12),f=ri(5,20),n=ri(4,15),r=ri(1,p-1),B=f+p*n+r;const who=pick(['Mia','Daniel','Aisha','Leo']);
-  return {q:`${who} has $${B} to spend at a fair. Admission costs $${f}, and each ride ticket costs $${p}. What is the maximum number of ride tickets ${who} can buy?`,answer:n,
+  return {q:`${who} has $${B} to spend at a fair. Admission costs $${f}, and each ride ticket costs $${p}. What is the maximum number of ride tickets ${who} can buy?`,answer:n,d:[n+1,Math.floor(B/p),Math.floor((B+f)/p),n-1],
     expl:`Неравенство: ${f} + ${p}t ≤ ${B}, то есть ${p}t ≤ ${B-f}, t ≤ ${((B-f)/p).toFixed(2)}. Билетов целое число, поэтому максимум ${n}.`};});
 add('alg',2,0,'slope',()=>{const k=nz(-3,3),b=ri(-8,8),x1=ri(1,4),x2=x1+ri(1,3);
-  return {q:`A line passes through the points (${x1}, ${m(k*x1+b)}) and (${x2}, ${m(k*x2+b)}) and crosses the y-axis at the point (0, b). What is the value of b?`,answer:b,
+  return {q:`A line passes through the points (${x1}, ${m(k*x1+b)}) and (${x2}, ${m(k*x2+b)}) and crosses the y-axis at the point (0, b). What is the value of b?`,answer:b,d:[k,k*x1+b,-b,x1],
     expl:`Наклон = (${m(k*x2+b)} − (${m(k*x1+b)}))/(${x2} − ${x1}) = ${m(k)}. Подставляем точку: ${m(k*x1+b)} = ${m(k)} · ${x1} + b, откуда b = ${m(b)}.`};});
 
 add('alg',3,0,'systems',()=>{const a=ri(2,5),b=ri(2,6),k=pick([2,3,4]),c=ri(1,9),d=k*c+ri(1,5);
-  return {q:`${eq(`${a}x + ${b}y = ${c}`)}${eq(`${k*a}x + py = ${d}`)}In the given system of equations, p is a constant. If the system has no solution, what is the value of p?`,answer:k*b,
+  return {q:`${eq(`${a}x + ${b}y = ${c}`)}${eq(`${k*a}x + py = ${d}`)}In the given system of equations, p is a constant. If the system has no solution, what is the value of p?`,answer:k*b,d:[b,k*a,k,k*c],
     expl:`Решений нет, когда прямые параллельны: коэффициенты при x и y пропорциональны, а свободные члены — нет. ${k*a}/${a} = ${k}, значит p = ${k} · ${b} = ${k*b} (при этом ${d} ≠ ${k} · ${c}).`};});
 add('alg',3,0,'lin1',()=>{const a=ri(2,6),p=ri(2,7),q=ri(1,9);
-  return {q:`${eq(`k(x + ${p}) − ${q} = ${a}x + c`)}In the given equation, k and c are constants. If the equation has infinitely many solutions, what is the value of c?`,answer:a*p-q,
+  return {q:`${eq(`k(x + ${p}) − ${q} = ${a}x + c`)}In the given equation, k and c are constants. If the equation has infinitely many solutions, what is the value of c?`,answer:a*p-q,d:[a*p+q,a*p,p-q,-q],
     expl:`Бесконечно много решений — обе части совпадают тождественно. Слева kx + ${p}k − ${q}. Значит k = ${a}, а c = ${p} · ${a} − ${q} = ${a*p-q}.`};});
 add('alg',3,0,'systems',()=>{const A=ri(8,15),C=A-ri(2,5),na=ri(20,60),nc=ri(20,60),n=na+nc,R=A*na+C*nc;
-  return {q:`A theater sold ${n} tickets for a show. Adult tickets cost $${A} each and student tickets cost $${C} each. The total revenue from ticket sales was $${R}. How many adult tickets were sold?`,answer:na,
+  return {q:`A theater sold ${n} tickets for a show. Adult tickets cost $${A} each and student tickets cost $${C} each. The total revenue from ticket sales was $${R}. How many adult tickets were sold?`,answer:na,d:[nc,Math.round(R/A),Math.round(R/(A+C)),n],
     expl:`Система: a + s = ${n} и ${A}a + ${C}s = ${R}. Подставляем s = ${n} − a: ${A}a + ${C}(${n} − a) = ${R}, откуда ${A-C}a = ${R-C*n}, a = ${na}.`};});
 
 /* ---------- Advanced Math ---------- */
@@ -287,11 +303,11 @@ add('adv',1,0,'poly',()=>{const p=nz(-7,7),q=nz(-7,7);
     ...mc(poly(1,p+q,p*q),[poly(1,p*q,p+q),poly(1,p-q,p*q),poly(1,p+q,-p*q),poly(1,-(p+q),p*q),poly(1,p+q,p+q)]),
     expl:`Раскрываем скобки: x · x + (${m(q)})x + (${m(p)})x + (${m(p)})(${m(q)}) = ${poly(1,p+q,p*q)}.`};});
 add('adv',1,0,'exp',()=>{const a=ri(2,6),b=ri(2,6),t=ri(0,1);
-  return t?{q:`If x<sup>${a}</sup> · x<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a+b,expl:`При умножении степеней с одинаковым основанием показатели складываются: ${a} + ${b} = ${a+b}.`}
-          :{q:`If (x<sup>${a}</sup>)<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a*b,rule:1,expl:`При возведении степени в степень показатели перемножаются: ${a} · ${b} = ${a*b}.`};});
+  return t?{q:`If x<sup>${a}</sup> · x<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a+b,d:[a*b,Math.abs(a-b)||1,a+b+1],expl:`При умножении степеней с одинаковым основанием показатели складываются: ${a} + ${b} = ${a+b}.`}
+          :{q:`If (x<sup>${a}</sup>)<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a*b,rule:1,d:[a+b,a*b+a,a*b-b],expl:`При возведении степени в степень показатели перемножаются: ${a} · ${b} = ${a*b}.`};});
 
 add('adv',2,0,'quad',()=>{const r1=ri(1,9),r2=-ri(1,9);
-  return {q:`What is the positive solution to the equation ${eq(`${poly(1,-(r1+r2),r1*r2)} = 0`)}`,answer:r1,
+  return {q:`What is the positive solution to the equation ${eq(`${poly(1,-(r1+r2),r1*r2)} = 0`)}`,answer:r1,d:[-r2,Math.abs(r1+r2),-r1*r2,r1+1],
     expl:`Раскладываем на множители: (x − ${r1})(x + ${-r2}) = 0. Корни: ${r1} и ${m(r2)}. Положительный — ${r1}.`};});
 add('adv',2,1,'quad',()=>{let r1,r2;do{r1=nz(-8,8);r2=nz(-8,8);}while(r1===r2);const s=r1+r2;
   return {q:`What is the sum of the solutions to the equation ${eq(`${poly(1,-s,r1*r2)} = 0`)}`,...mc(s,[-s,r1*r2,-r1*r2,r1-r2]),
@@ -301,17 +317,17 @@ add('adv',2,0,'expfn',()=>{const a=pick([50,100,200,300,500]),r=pick([2,3]),t=ri
     ...mc(ans,[a*r*t,a*r**(t-1),a*r**(t+1),(a*r)*(t+1)],x=>x.toLocaleString('en-US')),
     expl:`Подставляем t = ${t}: ${a} · ${r}^${t} = ${a} · ${r**t} = ${ans}. Сначала степень, потом умножение.`};});
 add('adv',2,0,'radical',()=>{const b=ri(3,9),a=ri(1,20);
-  return {q:`What value of x satisfies the equation ${eq(`√(x + ${a}) = ${b}`)}`,answer:b*b-a,
+  return {q:`What value of x satisfies the equation ${eq(`√(x + ${a}) = ${b}`)}`,answer:b*b-a,d:[b-a,b*b+a,2*b-a,b*b],
     expl:`Возводим обе части в квадрат: x + ${a} = ${b*b}, откуда x = ${m(b*b-a)}.`};});
 
-add('adv',3,1,'vertex',()=>{const h=nz(-6,6),k=ri(-9,9);
-  return {q:`The function f is defined by ${eq(`f(x) = ${poly(1,-2*h,h*h+k)}`)}What is the minimum value of f(x)?`,answer:k,
+add('adv',3,0,'vertex',()=>{const h=nz(-6,6),k=ri(-9,9);
+  return {q:`The function f is defined by ${eq(`f(x) = ${poly(1,-2*h,h*h+k)}`)}What is the minimum value of f(x)?`,answer:k,d:[h,-h,h*h+k,-k],
     expl:`Выделяем полный квадрат: f(x) = (x ${sg(-h)})${sq} ${k?sg(k):''}. Квадрат не меньше нуля, поэтому минимум равен ${m(k)} (при x = ${m(h)}).`};});
 add('adv',3,1,'quad',()=>{const n=ri(2,9);
-  return {q:`${eq(`x${sq} − kx + ${n*n} = 0`)}In the given equation, k is a positive constant. If the equation has exactly one real solution, what is the value of k?`,answer:2*n,
+  return {q:`${eq(`x${sq} − kx + ${n*n} = 0`)}In the given equation, k is a positive constant. If the equation has exactly one real solution, what is the value of k?`,answer:2*n,d:[n,n*n,4*n,4*n*n],
     expl:`Один корень — дискриминант равен нулю: k${sq} − 4 · ${n*n} = 0, k${sq} = ${4*n*n}, k = ${2*n} (берём положительное).`};});
 add('adv',3,1,'radical',()=>{const a=ri(2,8);let k;do{k=ri(a+3,22);}while(k===2*a);
-  return {q:`${eq(`(x${sq} − ${a*a}) / (x − ${a}) = ${k}`)}If x ≠ ${a}, what value of x satisfies the given equation?`,answer:k-a,
+  return {q:`${eq(`(x${sq} − ${a*a}) / (x − ${a}) = ${k}`)}If x ≠ ${a}, what value of x satisfies the given equation?`,answer:k-a,d:[k+a,k,k*a,a],
     expl:`Числитель — разность квадратов: (x − ${a})(x + ${a}). Сокращаем на (x − ${a}): x + ${a} = ${k}, x = ${k-a}.`};});
 add('adv',3,1,'expfn',()=>{const a=ri(2,6),b=pick([2,3]),f2=a*b*b,ans=a*b**3;
   return {q:`The function f is defined by f(x) = a · b<sup>x</sup>, where a and b are positive constants. If f(0) = ${a} and f(2) = ${f2}, what is the value of f(3)?`,
@@ -324,7 +340,7 @@ add('psda',1,0,'percent',()=>{const price=pick([40,60,80,120,160,200,240]),p=pic
   return {q:`A ${item} originally priced at $${price} is on sale for ${p}% off. What is the sale price?`,...mc(ans,[price-p,price*p/100,price*(100+p)/100,ans+5],money),
     expl:`Скидка: ${p}% от ${price} = ${money(price*p/100)}. Цена со скидкой: ${price} − ${price*p/100} = ${money(ans)}.`};});
 add('psda',1,0,'stats',()=>{const mean=ri(10,40);const d=[ri(-8,8),ri(-8,8),ri(-8,8),ri(-8,8)];d.push(-d.reduce((s,v)=>s+v,0));const v=shuffle(d.map(x=>mean+x));
-  return {q:`What is the mean of the data set below?${eq(v.join(', '))}`,answer:mean,
+  return {q:`What is the mean of the data set below?${eq(v.join(', '))}`,answer:mean,d:[v.slice().sort((p,q)=>p-q)[2],Math.max(...v)-Math.min(...v),mean*5,mean+1],
     expl:`Сумма: ${v.join(' + ')} = ${mean*5}. Делим на 5: ${mean}.`};});
 add('psda',1,0,'ratio',()=>{const s=pick([40,45,50,55,60,65]),h=ri(2,4),t=ri(5,8);
   return {q:`A train travels ${s*h} miles in ${h} hours at a constant speed. At this rate, how many miles will the train travel in ${t} hours?`,...mc(s*t,[s*h+t,s*(t-1),s*(t+1),s*h*2]),
@@ -334,21 +350,21 @@ add('psda',2,0,'percent',()=>{const a=pick([20,40,60,80,120,200,240,300]),p=pick
   return {q:`The price of a monthly bus pass increased from $${a} to $${b}. What is the percent increase in the price?`,...mc(p,[b-a,Math.round((b-a)/b*100),p+5,p+10],x=>x+'%'),
     expl:`Рост: ${b} − ${a} = ${b-a}. Делим на исходную цену: ${b-a} / ${a} = ${p/100}, то есть ${p}%. Делить нужно на старое значение, не на новое.`};});
 add('psda',2,0,'stats',()=>{const v=Array.from({length:7},()=>ri(10,40)),s=v.slice().sort((x,y)=>x-y);
-  return {q:`The number of points a player scored in each of 7 games is shown.${eq(v.join(', '))}What is the median number of points?`,answer:s[3],
+  return {q:`The number of points a player scored in each of 7 games is shown.${eq(v.join(', '))}What is the median number of points?`,answer:s[3],d:[v[3],Math.round(v.reduce((p,q)=>p+q,0)/7),s[2],s[4]],
     expl:`Упорядочиваем: ${s.join(', ')}. Медиана — четвёртое значение из семи: ${s[3]}.`};});
 add('psda',2,0,'prob',()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40),T=a+b+c+d;
   return {q:`<div class="tw"><table><tr><th></th><th>Bus</th><th>Car</th><th>Total</th></tr><tr><th>Grade 9</th><td>${a}</td><td>${b}</td><td>${a+b}</td></tr><tr><th>Grade 10</th><td>${c}</td><td>${d}</td><td>${c+d}</td></tr><tr><th>Total</th><td>${a+c}</td><td>${b+d}</td><td>${T}</td></tr></table></div>The table shows how students get to school. If a Grade 10 student is selected at random, what is the probability that the student takes the bus?`,
     ...mc(fr(c,c+d),[fr(c,a+c),fr(c,T),fr(d,c+d),fr(c+d,T),fr(a,a+b),fr(a+c,T)]),
     expl:`Выбираем только из десятиклассников — их ${c+d}. На автобусе из них ${c}. Вероятность: ${c}/${c+d} = ${fr(c,c+d)}. Знаменатель — не все ${T} учеников.`};});
 add('psda',2,0,'ratio',()=>{let a,b;do{a=ri(2,5);b=ri(2,7);}while(gcd(a,b)!==1);const k=ri(4,15);
-  return {q:`The ratio of red marbles to blue marbles in a bag is ${a} to ${b}. If there are ${(a+b)*k} marbles in the bag and all are red or blue, how many red marbles are there?`,answer:a*k,
+  return {q:`The ratio of red marbles to blue marbles in a bag is ${a} to ${b}. If there are ${(a+b)*k} marbles in the bag and all are red or blue, how many red marbles are there?`,answer:a*k,d:[b*k,Math.round((a+b)*k*a/b),Math.round((a+b)*k/a),Math.round((a+b)*k/2)],
     expl:`Всего частей: ${a} + ${b} = ${a+b}. Одна часть: ${(a+b)*k} / ${a+b} = ${k}. Красных: ${a} · ${k} = ${a*k}.`};});
 
 add('psda',3,0,'percent',()=>{const p=pick([10,20,25,30,40,50]),q=pick([10,20,25,30,40,50]),ans=100+p-q-p*q/100,f=x=>(+x.toFixed(1))+'%';
   return {q:`The price of a stock increased by ${p}% and then decreased by ${q}%. The final price is what percent of the original price?`,...mc(ans,[100+p-q,100+p-q+p*q/100,100-p*q/100,100-q],f),
     expl:`Множители: ${1+p/100} · ${1-q/100} = ${+(ans/100).toFixed(4)}, то есть ${f(ans)} от исходной. Проценты нельзя просто сложить и вычесть: второй процент берётся уже от новой цены.`};});
 add('psda',3,0,'stats',()=>{const n=ri(4,8),mean=ri(10,30),dl=nz(-3,4),x=(n+1)*(mean+dl)-n*mean;
-  return {q:`The mean of ${n} numbers is ${mean}. After one more number is added, the mean of the ${n+1} numbers is ${mean+dl}. What number was added?`,answer:x,
+  return {q:`The mean of ${n} numbers is ${mean}. After one more number is added, the mean of the ${n+1} numbers is ${mean+dl}. What number was added?`,answer:x,d:[mean+dl,dl*(n+1),mean+dl*n,x+n],
     expl:`Сумма была ${n} · ${mean} = ${n*mean}, стала ${n+1} · ${mean+dl} = ${(n+1)*(mean+dl)}. Разница: ${m(x)}.`};});
 add('psda',3,0,'stats',()=>{const [a,b]=pick([[1,2],[2,3],[1,3],[3,2],[1,4],[2,1]]),g=ri(4,8),t=nz(-3,3),m1=ri(65,82),m2=m1+(a+b)*t,ans=m1+b*t;
   return {q:`Class A has ${a*g} students with a mean test score of ${m1}. Class B has ${b*g} students with a mean test score of ${m2}. What is the mean test score of all the students in both classes combined?`,...mc(ans,[(m1+m2)/2,m1+a*t,m2,m1]),
@@ -359,24 +375,24 @@ add('geo',1,0,'area',()=>{const b=ri(2,7)*2,h=ri(3,12);
   return {q:`A triangle has a base of ${b} inches and a height of ${h} inches. What is the area of the triangle, in square inches?`,...mc(b*h/2,[b*h,b+h,b*h/2+b,2*b*h]),
     expl:`Площадь треугольника = ½ · основание · высота = ½ · ${b} · ${h} = ${b*h/2}.`};});
 add('geo',1,0,'angles',()=>{const a=ri(25,80),b=ri(25,80);
-  return {q:`In a triangle, two of the angles measure ${a}° and ${b}°. What is the measure, in degrees, of the third angle?`,answer:180-a-b,
+  return {q:`In a triangle, two of the angles measure ${a}° and ${b}°. What is the measure, in degrees, of the third angle?`,answer:180-a-b,d:[a+b,180-a,180-b,360-a-b],
     expl:`Сумма углов треугольника 180°: 180 − ${a} − ${b} = ${180-a-b}.`};});
 add('geo',1,0,'circle',()=>{const r=ri(3,9),t=ri(0,1);
   return t?{q:`A circle has a radius of ${r} centimeters. What is the area of the circle, in square centimeters?`,...mc(`${r*r}π`,[`${2*r}π`,`${r}π`,`${2*r*r}π`,`${4*r*r}π`]),expl:`Площадь круга = πr${sq} = π · ${r}${sq} = ${r*r}π.`}
           :{q:`A circle has a radius of ${r} centimeters. What is the circumference of the circle, in centimeters?`,...mc(`${2*r}π`,[`${r*r}π`,`${r}π`,`${4*r}π`,`${2*r*r}π`]),expl:`Длина окружности = 2πr = 2 · π · ${r} = ${2*r}π.`};});
 
 add('geo',2,0,'pyth',()=>{const tr=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[3,4,5]]),k=ri(1,3),[a,b,c]=tr.map(v=>v*k),t=ri(0,1);
-  return t?{q:`A right triangle has legs of length ${a} and ${b}. What is the length of the hypotenuse?`,answer:c,expl:`По теореме Пифагора: ${a}${sq} + ${b}${sq} = ${a*a} + ${b*b} = ${c*c}, корень — ${c}.`}
-          :{q:`A right triangle has a hypotenuse of length ${c} and one leg of length ${a}. What is the length of the other leg?`,answer:b,expl:`По теореме Пифагора: ${c}${sq} − ${a}${sq} = ${c*c} − ${a*a} = ${b*b}, корень — ${b}.`};});
+  return t?{q:`A right triangle has legs of length ${a} and ${b}. What is the length of the hypotenuse?`,answer:c,d:[a+b,a*a+b*b,Math.round(Math.sqrt(b*b-a*a)),c+a],expl:`По теореме Пифагора: ${a}${sq} + ${b}${sq} = ${a*a} + ${b*b} = ${c*c}, корень — ${c}.`}
+          :{q:`A right triangle has a hypotenuse of length ${c} and one leg of length ${a}. What is the length of the other leg?`,answer:b,d:[c-a,Math.round(Math.sqrt(c*c+a*a)),c+a,c*c-a*a],expl:`По теореме Пифагора: ${c}${sq} − ${a}${sq} = ${c*c} − ${a*a} = ${b*b}, корень — ${b}.`};});
 add('geo',2,0,'similar',()=>{const a=ri(3,9),k=ri(2,4),b=ri(4,12);
-  return {q:`Triangles ABC and DEF are similar, where A corresponds to D and B corresponds to E. If AB = ${a}, DE = ${a*k}, and BC = ${b}, what is the length of EF?`,answer:b*k,
+  return {q:`Triangles ABC and DEF are similar, where A corresponds to D and B corresponds to E. If AB = ${a}, DE = ${a*k}, and BC = ${b}, what is the length of EF?`,answer:b*k,d:[b+a*k-a,b*k*k,a*k+b,a*k],
     expl:`Коэффициент подобия: DE / AB = ${a*k} / ${a} = ${k}. EF = ${k} · BC = ${k} · ${b} = ${b*k}.`};});
 add('geo',2,0,'volume',()=>{const r=ri(2,6),h=ri(3,10);
   return {q:`A right circular cylinder has a base radius of ${r} inches and a height of ${h} inches. What is the volume of the cylinder, in cubic inches?`,
     ...mc(`${r*r*h}π`,[`${2*r*h}π`,`${r*h}π`,`${4*r*r*h}π`,`${r*h*h}π`,`${r*r*h*2}π`]),
     expl:`Объём цилиндра = πr${sq}h = π · ${r*r} · ${h} = ${r*r*h}π.`};});
 add('geo',2,0,'angles',()=>{const x=ri(8,20),a=ri(2,4),c=ri(1,3),b=ri(1,30),d=180-(a+c)*x-b;
-  return {q:`Two angles form a straight line. Their measures are (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the value of x?`,answer:x,
+  return {q:`Two angles form a straight line. Their measures are (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the value of x?`,answer:x,d:[a*x+b,c*x+d,Math.round((360-b-d)/(a+c)),Math.round((90+b+d)/(a+c))],
     expl:`Смежные углы в сумме дают 180°: ${a+c}x + ${b+d} = 180, ${a+c}x = ${180-b-d}, x = ${x}.`};});
 
 add('geo',3,1,'trig',()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),t=ri(0,1);
@@ -384,7 +400,7 @@ add('geo',3,1,'trig',()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,
   return {q:`In right triangle ABC, angle C is the right angle and sin A = ${a}/${c}. What is the value of ${t?'cos':'tan'} A?`,...mc(cor,all.filter(s=>s!==`${a}/${c}`)),
     expl:`sin A = противолежащий / гипотенуза, значит катет напротив A равен ${a}, гипотенуза ${c}. Второй катет: √(${c*c} − ${a*a}) = ${b}. ${t?`cos A = прилежащий / гипотенуза = ${b}/${c}`:`tan A = противолежащий / прилежащий = ${a}/${b}`}.`};});
 add('geo',3,2,'circleeq',()=>{const h=nz(-5,5),k=nz(-5,5),r=ri(2,9),C=h*h+k*k-r*r;
-  return {q:`${eq(`x${sq} + y${sq} ${sg(-2*h)}x ${sg(-2*k)}y ${C?sg(C)+' ':''}= 0`)}The given equation represents a circle in the xy-plane. What is the radius of the circle?`,answer:r,
+  return {q:`${eq(`x${sq} + y${sq} ${sg(-2*h)}x ${sg(-2*k)}y ${C?sg(C)+' ':''}= 0`)}The given equation represents a circle in the xy-plane. What is the radius of the circle?`,answer:r,d:[r*r,Math.abs(C)||r+1,2*r,Math.abs(h)+Math.abs(k)],
     expl:`Выделяем полные квадраты: (x ${sg(-h)})${sq} + (y ${sg(-k)})${sq} = ${h*h} + ${k*k} ${sg(-C)} = ${r*r}. Радиус: √${r*r} = ${r}.`};});
 add('geo',3,2,'circle',()=>{const th=pick([30,45,60,90,120]),k=ri(1,5),r=(180/gcd(th,180))*k,n=r*th/180,f=x=>x===1?'π':`${x}π`;
   return {q:`A circle has a radius of ${r}. An arc of the circle is intercepted by a central angle of ${th}°. What is the length of the arc?`,...mc(n,[2*n,r,2*r,3*n,n*4],f),
@@ -396,19 +412,19 @@ add('alg',2,0,'ineq',()=>{const a=ri(2,6),k=ri(2,9),b=ri(1,12),c=b-a*k;
   return {q:`Which of the following describes all solutions to the inequality ${eq(`−${a}x + ${b} > ${m(c)}`)}`,...mc(`x < ${k}`,[`x > ${k}`,`x < ${m(-k)}`,`x > ${m(-k)}`]),
     expl:`Вычитаем ${b}: −${a}x > ${m(c-b)}. Делим на −${a} и переворачиваем знак: x < ${k}.`};});
 add('alg',3,0,'slope',()=>{const k=nz(-4,5),b=ri(-9,9),x1=ri(1,4),x2=x1+ri(2,4),x3=x2+ri(2,5);
-  return {q:`For the linear function f, f(${x1}) = ${m(k*x1+b)} and f(${x2}) = ${m(k*x2+b)}. What is the value of f(${x3})?`,answer:k*x3+b,
+  return {q:`For the linear function f, f(${x1}) = ${m(k*x1+b)} and f(${x2}) = ${m(k*x2+b)}. What is the value of f(${x3})?`,answer:k*x3+b,d:[k*x3,k*x2+b+k,k*(x3-x2),k*x3-b],
     expl:`Наклон: (${m(k*x2+b)} − (${m(k*x1+b)})) / (${x2} − ${x1}) = ${m(k)}. От x = ${x2} до x = ${x3} ещё ${x3-x2} шагов: ${m(k*x2+b)} + ${x3-x2} · (${m(k)}) = ${m(k*x3+b)}.`};});
 add('adv',2,0,'poly',()=>{const a=ri(2,5),b=ri(1,6);
   return {q:`Which expression is equivalent to (${a}x + ${b})${sq}?`,...mc(poly(a*a,2*a*b,b*b),[poly(a*a,0,b*b),poly(a*a,a*b,b*b),poly(a,2*a*b,b*b),poly(a*a,2*a*b,2*b)]),
     expl:`(a + b)${sq} = a${sq} + 2ab + b${sq}: (${a}x)${sq} + 2 · ${a}x · ${b} + ${b}${sq} = ${poly(a*a,2*a*b,b*b)}. Средний член 2ab забывают чаще всего.`};});
 add('adv',2,1,'abs',()=>{const h=nz(-6,9),k=ri(2,9);
-  return {q:`What is the sum of the solutions to the equation ${eq(`|x ${sg(-h)}| = ${k}`)}`,answer:2*h,
+  return {q:`What is the sum of the solutions to the equation ${eq(`|x ${sg(-h)}| = ${k}`)}`,answer:2*h,d:[2*k,h,h+k,-2*h],
     expl:`Модуль равен ${k} в двух случаях: x ${sg(-h)} = ${k} или x ${sg(-h)} = −${k}. Корни ${m(h+k)} и ${m(h-k)}, сумма ${m(2*h)}.`};});
 add('adv',3,2,'quad',()=>{let r1,r2;do{r1=ri(-6,6);r2=ri(-6,6);}while(r1===r2);const k=nz(-3,4),d=nz(-5,8),b=k-(r1+r2),c=d+r1*r2;
-  return {q:`${eq(`y = ${poly(1,b,c)}`)}${eq(`y = ${k===1?'':k===-1?'−':m(k)}x ${sg(d)}`)}The graphs of the given equations intersect at two points in the xy-plane. What is the sum of the x-coordinates of these two points?`,answer:r1+r2,
+  return {q:`${eq(`y = ${poly(1,b,c)}`)}${eq(`y = ${k===1?'':k===-1?'−':m(k)}x ${sg(d)}`)}The graphs of the given equations intersect at two points in the xy-plane. What is the sum of the x-coordinates of these two points?`,answer:r1+r2,d:[r1*r2,-(r1+r2),b,-b],
     expl:`Приравниваем правые части и переносим всё влево: ${poly(1,-(r1+r2),r1*r2)} = 0. Корни ${m(r1)} и ${m(r2)}, сумма ${m(r1+r2)}.`};});
 add('psda',2,0,'scatter',()=>{const a=ri(2,9),b=ri(10,60),x=ri(5,20);
-  return {q:`A line of best fit for a set of data is given by ${eq(`y = ${a}x + ${b}`)}where x is the number of weeks since a plant was first measured and y is its predicted height, in millimeters. What is the predicted height, in millimeters, at ${x} weeks?`,answer:a*x+b,
+  return {q:`A line of best fit for a set of data is given by ${eq(`y = ${a}x + ${b}`)}where x is the number of weeks since a plant was first measured and y is its predicted height, in millimeters. What is the predicted height, in millimeters, at ${x} weeks?`,answer:a*x+b,d:[a*x,a+b+x,(a+b)*x,a*x-b],
     expl:`Подставляем x = ${x} в уравнение линии: ${a} · ${x} + ${b} = ${a*x+b}.`};});
 add('psda',3,0,'ratio',()=>{const s=ri(3,20)*6,ans=s*1000/60;
   return {q:`A cyclist rides at a constant speed of ${s} kilometers per hour. What is this speed in meters per minute? (1 kilometer = 1,000 meters)`,...mc(ans,[s*60,s*10,s*100,ans/2]),
@@ -418,33 +434,391 @@ add('psda',3,2,'infer',()=>{const p=ri(30,70),e=ri(2,5),n=pick([400,500,800,1000
     ...mc(`It is plausible that between ${p-e}% and ${p+e}% support the park.`,[`Exactly ${p}% support the park.`,`At least ${p+e}% support the park.`,`No more than ${p-e}% support the park.`]),
     expl:`Погрешность (margin of error) задаёт интервал вокруг оценки: ${p}% ± ${e}%, то есть от ${p-e}% до ${p+e}%. Точное значение по выборке узнать нельзя.`};});
 add('geo',3,0,'volume',()=>{const k=pick([2,3,4]),s=ri(2,5),V=s**3;
-  return {q:`A cube has a volume of ${V} cubic centimeters. If the length of each edge is multiplied by ${k}, what is the volume, in cubic centimeters, of the new cube?`,answer:V*k**3,
+  return {q:`A cube has a volume of ${V} cubic centimeters. If the length of each edge is multiplied by ${k}, what is the volume, in cubic centimeters, of the new cube?`,answer:V*k**3,d:[V*k,V*k*k,V+k**3,3*V*k],
     expl:`Когда все размеры растут в k раз, объём растёт в k³ раз: ${V} · ${k**3} = ${V*k**3}. Площадь поверхности выросла бы в k² раз.`};});
 add('geo',3,0,'pyth',()=>{const a=ri(3,9),t=ri(0,1);
   return t?{q:`An isosceles right triangle has legs of length ${a}. What is the length of its hypotenuse?`,...mc(`${a}√2`,[`${2*a}`,`${a}√3`,`${a*a}`,`${2*a}√2`]),expl:`Треугольник 45°-45°-90°: стороны относятся как 1 : 1 : √2. Гипотенуза = катет · √2 = ${a}√2.`}
           :{q:`In a right triangle with angles of 30°, 60°, and 90°, the side opposite the 30° angle has length ${a}. What is the length of the hypotenuse?`,...mc(`${2*a}`,[`${a}√3`,`${a}√2`,`${2*a}√3`,`${3*a}`]),rule:3,expl:`Треугольник 30°-60°-90°: стороны x : x√3 : 2x. Напротив 30° лежит x = ${a}, гипотенуза 2x = ${2*a}.`};});
 add('geo',3,0,'angles',()=>{const x=ri(6,20),a=ri(2,5),c=ri(1,a-1),b=ri(5,40),d=b+(a-c)*x,ang=a*x+b;
-  return {q:`Lines ℓ and k are parallel and are intersected by a transversal. Two alternate interior angles measure (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the measure, in degrees, of each of these angles?`,answer:ang,
+  return {q:`Lines ℓ and k are parallel and are intersected by a transversal. Two alternate interior angles measure (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the measure, in degrees, of each of these angles?`,answer:ang,d:[x,180-ang,a*x,ang+x],
     expl:`Накрест лежащие углы при параллельных прямых равны: ${a}x + ${b} = ${c===1?'':c}x + ${d}, откуда x = ${x}. Сам угол: ${a} · ${x} + ${b} = ${ang}. Спрашивают угол, а не x.`};});
 add('geo',2,1,'trig',()=>{const k=ri(10,80);
-  return {q:`If sin(x°) = cos(${k}°) and 0 < x < 90, what is the value of x?`,answer:90-k,
+  return {q:`If sin(x°) = cos(${k}°) and 0 < x < 90, what is the value of x?`,answer:90-k,d:[k,180-k,90+k,2*k],
     expl:`Синус угла равен косинусу дополнительного: sin(x°) = cos(90° − x°). Значит 90 − x = ${k}, x = ${90-k}.`};});
 add('geo',3,2,'trig',()=>{const [d,n,dd]=pick([[30,1,6],[45,1,4],[60,1,3],[120,2,3],[135,3,4],[150,5,6],[210,7,6],[240,4,3],[300,5,3]]),cor=`${n===1?'':n}π/${dd}`;
   return {q:`An angle measures ${d}°. What is the measure of the angle in radians?`,...mc(cor,[`${d}π/90`,`${d}π/360`,`π/${d}`,`${d}π`]),
     expl:`180° = π радиан, поэтому умножаем на π/180: ${d} · π/180 = ${cor}.`};});
 
 const RULE=[0,0,0,0,2,2,1,2,1,0, 0,0,0,0,3,0,0,0,2,1,0, 2,0,1,1,1,1,0,3,0,4, 0,2,0,0,0,0,0,0,1,1, 0,0,1,0,0,0,2,1,2,2,1,1,3];
+const MC_SHARE=.75;
+function toMC(p){
+  const a=p.answer,val=x=>Array.isArray(x)?x[0]/x[1]:x,fv=x=>Array.isArray(x)?frS(x[0],x[1]):Number.isInteger(x)?m(x):m(+x.toFixed(4)),cor=p.fr?frS(p.fr[0],p.fr[1]):fv(a),set=[],vals=[a];
+  const take=(xs,strict)=>{for(const x of xs){if(set.length>=3)break;const v=val(x);if(!Number.isFinite(v)||(strict&&a>0&&v<0)||vals.some(u=>Math.abs(u-v)<1e-6))continue;const t=fv(x);if(t===cor||set.includes(t))continue;set.push(t);vals.push(v);}};
+  take(shuffle(p.d||[]));p.own=set.length;
+  let c;
+  if(p.fr){const [n,d]=p.fr;c=[[-n,d],[d,n],[n+d,d],[n,d+1],[2*n,d],[n-d,d],[n,2*d]].filter(x=>x[1]!==0);}
+  else if(Number.isInteger(a)){const b=Math.abs(a),s=b>=100&&a%10===0?10:b>=40&&a%5===0?5:1;c=[a+s,a-s,a+2*s,a-2*s,2*a,a+3*s];if(b>3)c.push(Math.round(a/2));if(a<0)c.push(-a);}
+  else{c=[a+1,a-1,2*a,a/2,a+.5,a-.5,a*10];if(a<0)c.push(-a);}
+  take(shuffle(c),true);
+  if(set.length<3)return;
+  const ch=shuffle([cor,...set]);p.choices=ch;p.answer=ch.indexOf(cor);delete p.ansText;
+}
 function generate(sec,lvl,tier){
+  const want=Math.random()<MC_SHARE;
   let pool=[];
   for(let l=lvl;l>=1&&!pool.length;l--)pool=POOL.filter(g=>g.sec===sec&&g.lvl===l&&g.tier<=tier);
   for(let i=0;i<60;i++){
     const g=pick(pool),p=g.fn();
     if(p.choices&&(p.choices.length<4||p.answer<0))continue;
     if(!p.choices&&!Number.isFinite(p.answer))continue;
-    p.sec=sec;p.lvl=g.lvl;p.topic=g.topic;if(p.rule==null)p.rule=RULE[POOL.indexOf(g)]||0;return p;
+    if(!want&&p.choices&&i<10)continue;
+    if(want&&!p.choices)toMC(p);
+    delete p.d;
+    p.sec=sec;p.lvl=g.lvl;p.topic=g.topic;if(p.rule==null)p.rule=g.rule!=null?g.rule:(RULE[POOL.indexOf(g)]||0);return p;
   }
   throw new Error('generator failed');
 }
+
+/* ---------- helpers for graphs, figures, fractions ---------- */
+const frS=(n,d)=>{if(d<0){n=-n;d=-d;}const s=n<0?'−':'';n=Math.abs(n);const g=gcd(n,d)||1;n/=g;d/=g;return s+(d===1?n:`${n}/${d}`);};
+function FR(n,d){const v=n/d;if(Number.isInteger(v))return {answer:v};const f=frS(n,d),g0=gcd(Math.abs(n),Math.abs(d))||1,sgn=d<0?-1:1,fr=[sgn*n/g0,sgn*d/g0],t=Math.abs(v*1000-Math.round(v*1000))<1e-9;
+  return {answer:v,fr,ansText:`${f} (или ${m(t?+v.toFixed(3):Math.trunc(v*1e4)/1e4)}${t?'':'…'})`};}
+const DEC=v=>({answer:+v.toFixed(6),ansText:m(+v.toFixed(4))});
+const cf=k=>k===1?'':k===-1?'−':m(k);
+const lx=(k,b)=>k===0?m(b):cf(k)+'x'+(b?' '+sg(b):'');
+const lxf=(p,q,b)=>{const g=gcd(Math.abs(p),q);p/=g;q/=g;return q===1?lx(p,b):(p<0?'−':'')+`(${Math.abs(p)}/${q})x`+(b?' '+sg(b):'');};
+const P2=(x,y)=>`(${m(x)}, ${m(y)})`;
+const xp=(v,e)=>e===1?v:`${v}<sup>${e}</sup>`;
+const NTS='<span class="cap">Note: Figure not drawn to scale.</span>';
+let _pid=0;
+function plot(o){
+  const W=264,H=264,p=24,[x0,x1]=o.x,[y0,y1]=o.y,X=x=>p+(x-x0)/(x1-x0)*(W-2*p),Y=y=>H-p-(y-y0)/(y1-y0)*(H-2*p),id='cp'+(++_pid),sx=o.sx||1,sy=o.sy||1,tx=o.tx||((x1-x0)>12?2:1),ty=o.ty||((y1-y0)>12?2:1);
+  let s=`<clipPath id="${id}"><rect x="${p}" y="${p}" width="${W-2*p}" height="${H-2*p}"/></clipPath>`;
+  for(let x=x0;x<=x1;x++)s+=`<line class="gg" x1="${X(x)}" y1="${p}" x2="${X(x)}" y2="${H-p}"/>`;
+  for(let y=y0;y<=y1;y++)s+=`<line class="gg" x1="${p}" y1="${Y(y)}" x2="${W-p}" y2="${Y(y)}"/>`;
+  const ax=Math.min(x1,Math.max(x0,0)),ay=Math.min(y1,Math.max(y0,0));
+  if(o.shade){const f=o.shade.f,e=o.shade.above?y1+5:y0-5;s+=`<polygon class="gsh" clip-path="url(#${id})" points="${X(x0)},${Y(f(x0))} ${X(x1)},${Y(f(x1))} ${X(x1)},${Y(e)} ${X(x0)},${Y(e)}"/>`;}
+  s+=`<line class="ga" x1="${p}" y1="${Y(ay)}" x2="${W-p}" y2="${Y(ay)}"/><line class="ga" x1="${X(ax)}" y1="${p}" x2="${X(ax)}" y2="${H-p}"/>`;
+  for(let x=Math.ceil(x0/tx)*tx;x<=x1;x+=tx)if(x!==ax)s+=`<text x="${X(x)}" y="${Y(ay)+12}" text-anchor="middle">${m(x*sx)}</text>`;
+  for(let y=Math.ceil(y0/ty)*ty;y<=y1;y+=ty)if(y!==ay)s+=`<text x="${X(ax)-4}" y="${Y(y)+3.5}" text-anchor="end">${m(y*sy)}</text>`;
+  s+=`<text x="${W-p+5}" y="${Y(ay)+4}" class="gt">${o.xl||'x'}</text><text x="${X(ax)}" y="${p-8}" text-anchor="middle" class="gt">${o.yl||'y'}</text>`;
+  (o.fns||[]).forEach((f,i)=>{let d='';for(let k=0;k<=240;k++){const x=x0+(x1-x0)*k/240,y=Math.max(y0-9,Math.min(y1+9,f(x)));d+=(k?'L':'M')+X(x).toFixed(1)+' '+Y(y).toFixed(1);}
+    s+=`<path class="${i?'gc2':'gc'}${o.dash&&!i?' gdash':''}" clip-path="url(#${id})" d="${d}"/>`;});
+  if(o.circ)s+=`<circle class="gc" clip-path="url(#${id})" cx="${X(o.circ[0])}" cy="${Y(o.circ[1])}" r="${X(o.circ[2])-X(0)}"/>`;
+  (o.pts||[]).forEach(q=>{s+=`<circle class="gp" cx="${X(q[0])}" cy="${Y(q[1])}" r="3.2"/>`;});
+  return `<svg class="plot" viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+function chart(labels,vals,ymax,step,line){
+  const W=290,H=190,l=36,b=26,t=12,n=vals.length,bw=(W-l-8)/n,Y=v=>H-b-v/ymax*(H-b-t),CX=i=>l+i*bw+bw/2;let s='';
+  for(let v=0;v<=ymax;v+=step)s+=`<line class="gg" x1="${l}" y1="${Y(v)}" x2="${W-6}" y2="${Y(v)}"/><text x="${l-4}" y="${Y(v)+3.5}" text-anchor="end">${v}</text>`;
+  labels.forEach((t2,i)=>{s+=`<text x="${CX(i)}" y="${H-b+13}" text-anchor="middle">${t2}</text>`;});
+  if(line)s+=`<polyline class="gc" points="${vals.map((v,i)=>CX(i)+','+Y(v)).join(' ')}"/>`+vals.map((v,i)=>`<circle class="gp" cx="${CX(i)}" cy="${Y(v)}" r="3.2"/>`).join('');
+  else vals.forEach((v,i)=>{s+=`<rect class="gb" x="${CX(i)-bw*.3}" y="${Y(v)}" width="${bw*.6}" height="${Y(0)-Y(v)}"/>`;});
+  s+=`<line class="ga" x1="${l}" y1="${Y(0)}" x2="${W-6}" y2="${Y(0)}"/><line class="ga" x1="${l}" y1="${t}" x2="${l}" y2="${Y(0)}"/>`;
+  return `<svg class="plot wide" viewBox="0 0 ${W} ${H}" role="img">${s}</svg>`;
+}
+const QF=inner=>`<svg class="fig qf" viewBox="0 0 260 150" role="img">${inner}</svg>`;
+const rtFig=(bot,right,hyp)=>QF(`<polygon class="fs" points="40,125 210,125 210,35"/><polyline class="fl" points="198,125 198,113 210,113"/><text x="28" y="130">A</text><text x="216" y="134">C</text><text x="214" y="32">B</text><text x="120" y="142" text-anchor="middle">${bot}</text><text x="218" y="84">${right}</text><text x="112" y="72" text-anchor="end">${hyp}</text>`);
+const crossFig=(l,r,t,b)=>QF(`<line class="fs" x1="30" y1="40" x2="230" y2="110"/><line class="fs" x1="30" y1="110" x2="230" y2="40"/><text x="84" y="79" text-anchor="middle">${l}</text><text x="176" y="79" text-anchor="middle">${r}</text><text x="130" y="56" text-anchor="middle">${t}</text><text x="130" y="103" text-anchor="middle">${b}</text>`);
+const parFig=(a,x,pos)=>{const q={corr:[176,119],alt:[130,99],same:[166,98]}[pos];return QF(`<line class="fs" x1="20" y1="50" x2="240" y2="50"/><line class="fs" x1="20" y1="105" x2="240" y2="105"/><line class="fs" x1="80" y1="15" x2="180" y2="140"/><text x="246" y="54">ℓ</text><text x="246" y="109">k</text><text x="124" y="65">${a}</text><text x="${q[0]}" y="${q[1]}" text-anchor="middle">${x}</text>`);};
+const triExt=(a,c,x)=>QF(`<polygon class="fs" points="40,120 190,120 100,30"/><line class="fs" x1="190" y1="120" x2="246" y2="120"/><text x="62" y="115">${a}</text><text x="102" y="56" text-anchor="middle">${c}</text><text x="200" y="113">${x}</text><text x="28" y="126">A</text><text x="186" y="136">B</text><text x="96" y="22">C</text>`);
+const lFig=(W,H,top,right)=>QF(`<polygon class="fs" points="50,130 220,130 220,75 140,75 140,22 50,22"/><text x="135" y="146" text-anchor="middle">${W}</text><text x="42" y="80" text-anchor="end">${H}</text><text x="95" y="17" text-anchor="middle">${top}</text><text x="226" y="107">${right}</text>`);
+const simFig=(a,b,ka,x)=>QF(`<polygon class="fs" points="24,122 84,122 44,77"/><polygon class="fs" points="118,127 226,127 154,46"/><text x="54" y="137" text-anchor="middle">${a}</text><text x="26" y="98" text-anchor="end">${b}</text><text x="172" y="143" text-anchor="middle">${ka}</text><text x="128" y="84" text-anchor="end">${x}</text>`);
+const secFig=(th,r)=>QF(`<circle class="fs" cx="130" cy="78" r="58"/><line class="fs" x1="130" y1="78" x2="188" y2="78"/><line class="fs" x1="130" y1="78" x2="159" y2="27.8"/><circle class="dot" cx="130" cy="78" r="2.5"/><text x="146" y="70">${th}</text><text x="156" y="93">${r}</text>`);
+const isoFig=(apex,base)=>QF(`<polygon class="fs" points="60,128 200,128 130,26"/><line class="fl" x1="88" y1="74" x2="100" y2="80"/><line class="fl" x1="172" y1="74" x2="160" y2="80"/><text x="130" y="52" text-anchor="middle">${apex}</text><text x="80" y="122">${base}</text>`);
+const rectFig=(l,w)=>QF(`<rect class="fs" x="50" y="35" width="160" height="80"/><text x="130" y="131" text-anchor="middle">${l}</text><text x="216" y="80">${w}</text>`);
+const tbl=(h,rows)=>`<div class="tw"><table><tr>${h.map(c=>`<th>${c}</th>`).join('')}</tr>${rows.map(r=>`<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('')}</table></div>`;
+const htbl=(a,b,xs,ys)=>`<div class="tw"><table><tr><th>${a}</th>${xs.map(v=>`<td>${m(v)}</td>`).join('')}</tr><tr><th>${b}</th>${ys.map(v=>`<td>${m(v)}</td>`).join('')}</tr></table></div>`;
+const PG={x:[-6,6],y:[-6,6]};
+
+/* ---------- graph and figure problems ---------- */
+add('alg',1,0,'slope',()=>{const k=pick([-2,-1,1,2]),b=nz(-4,4);
+  return {q:`${plot({...PG,fns:[x=>k*x+b]})}The graph of a line is shown in the xy-plane. The line crosses the y-axis at the point (0, b). What is the value of b?`,answer:b,d:[-b,k,-b/k,b+k],
+    expl:`Смотрим, где линия пересекает вертикальную ось y: в точке (0, ${m(b)}). Это и есть y-intercept.`};},1);
+add('alg',2,0,'slope',()=>{let p,q;do{q=pick([1,2,3]);p=nz(-3,3);}while(gcd(Math.abs(p),q)!==1);const b=ri(-2,2);
+  return {q:`${plot({...PG,fns:[x=>p/q*x+b],pts:[[0,b],[q,b+p]]})}The graph of a line is shown, with two of its points marked. What is the slope of the line?`,...FR(p,q),d:[[-p,q],[q,p],[p,1],[q,1]],
+    expl:`Отмеченные точки: (0, ${m(b)}) и (${q}, ${m(b+p)}). Наклон = изменение y / изменение x = ${m(p)} / ${q}${q===1?'':' = '+frS(p,q)}. Ответ можно ввести дробью или десятичным числом.`};},0);
+add('alg',2,0,'slope',()=>{const k=nz(-3,3),b=nz(-4,4);
+  return {q:`${plot({...PG,fns:[x=>k*x+b]})}Which equation represents the line shown in the xy-plane?`,...mc(`y = ${lx(k,b)}`,[`y = ${lx(-k,b)}`,`y = ${lx(k,-b)}`,`y = ${lx(b,k)}`,`y = ${lx(-k,-b)}`]),
+    expl:`Линия пересекает ось y в ${m(b)} — это b. При сдвиге на 1 вправо она ${k>0?'поднимается':'опускается'} на ${Math.abs(k)} — наклон ${m(k)}. Уравнение: y = ${lx(k,b)}.`};},1);
+add('alg',1,0,'systems',()=>{let a,b;do{a=nz(-3,3);b=nz(-3,3);}while(a===b);const [k1,k2]=shuffle([-2,-1,1,2]);
+  return {q:`${plot({...PG,fns:[x=>k1*(x-a)+b,x=>k2*(x-a)+b]})}The graphs of the two equations of a system are shown. What is the solution (x, y) to the system?`,...mc(P2(a,b),[P2(b,a),P2(-a,b),P2(a,-b),P2(-a,-b)]),
+    expl:`Решение системы — точка, где линии пересекаются: ${P2(a,b)}. Сначала читаем x, потом y.`};},2);
+add('alg',3,0,'slope',()=>{let p,q;do{p=nz(-5,5);q=nz(-5,5);}while(Math.abs(p)===Math.abs(q));
+  const std=(A,B,C)=>`${cf(A)}x ${B<0?'−':'+'} ${Math.abs(B)===1?'':Math.abs(B)}y = ${m(C)}`;
+  return {q:`${plot({...PG,fns:[x=>q-q/p*x],pts:[[p,0],[0,q]]})}The line shown passes through the two marked points on the axes. Which equation represents this line?`,...mc(std(q,p,p*q),[std(p,q,p*q),std(q,-p,p*q),std(q,p,-p*q),std(-q,p,p*q)]),
+    expl:`Точки на осях: (${m(p)}, 0) и (0, ${m(q)}). Проверяем подстановкой: при y = 0 должно получиться x = ${m(p)}, при x = 0 — y = ${m(q)}. Подходит только ${std(q,p,p*q)}.`};},3);
+add('alg',1,0,'slope',()=>{const a=nz(-4,4),k=pick([-2,-1,1,2]);
+  return {q:`${plot({x:[-6,6],y:[-8,8],fns:[x=>k*(x-a)]})}The graph of a line is shown. The line crosses the x-axis at the point (a, 0). What is the value of a?`,answer:a,d:[-a,-k*a,k,a*k],
+    expl:`x-intercept — точка, где линия пересекает горизонтальную ось x (там y = 0). По графику это ${P2(a,0)}.`};},3);
+add('alg',3,0,'ineq',()=>{const k=pick([-2,-1,1,2]),b=ri(-3,3),up=ri(0,1),st=ri(0,1),s1=up?(st?'>':'≥'):(st?'&lt;':'≤'),s2=up?(st?'&lt;':'≤'):(st?'>':'≥');
+  return {q:`${plot({...PG,fns:[x=>k*x+b],shade:{f:x=>k*x+b,above:!!up},dash:!!st})}The shaded region shown represents the solutions to which inequality?`,...mc(`y ${s1} ${lx(k,b)}`,[`y ${s2} ${lx(k,b)}`,`y ${s1} ${lx(-k,b)}`,`y ${s2} ${lx(-k,b)}`]),
+    expl:`Граница — прямая y = ${lx(k,b)}. Закрашено ${up?'выше':'ниже'} неё, значит y ${up?'больше':'меньше'}. ${st?'Пунктирная':'Сплошная'} линия означает, что сама граница ${st?'не входит':'входит'} в решение.`};},3);
+add('adv',1,0,'vertex',()=>{let h,k;const a=pick([1,-1]);do{h=nz(-3,3);k=a*-ri(1,5);}while(h===k);
+  return {q:`${plot({...PG,fns:[x=>a*(x-h)**2+k]})}The graph of a quadratic function is shown. What is the vertex of the parabola?`,...mc(P2(h,k),[P2(k,h),P2(-h,k),P2(h,-k),P2(-h,-k)]),
+    expl:`Вершина — самая ${a>0?'низкая':'высокая'} точка параболы: ${P2(h,k)}.`};},0);
+add('adv',1,0,'vertex',()=>{const h=pick([-2,-1,1,2]),k=-ri(1,5),y=h*h+k;
+  return {q:`${plot({...PG,fns:[x=>(x-h)**2+k]})}The graph of y = f(x) is shown, where f is a quadratic function. What is the y-intercept of the graph? Enter the y-coordinate.`,answer:y,d:[k,h,-y,h*h],
+    expl:`y-intercept — точка пересечения с осью y, то есть значение при x = 0. По графику парабола проходит через (0, ${m(y)}).`};},3);
+add('adv',2,0,'vertex',()=>{let r1,d;const a=pick([1,-1]);do{r1=nz(-4,2);d=pick([2,4]);}while(r1+d===0||r1+d===-r1||r1+d>4);const r2=r1+d,f=(s,u,v)=>`y = ${s<0?'−':''}(x ${sg(-u)})(x ${sg(-v)})`;
+  return {q:`${plot({...PG,fns:[x=>a*(x-r1)*(x-r2)]})}Which equation could define the parabola shown?`,...mc(f(a,r1,r2),[f(a,-r1,-r2),f(-a,r1,r2),f(-a,-r1,-r2)]),
+    expl:`Парабола пересекает ось x в ${m(r1)} и ${m(r2)}, значит множители (x ${sg(-r1)}) и (x ${sg(-r2)}): знак в скобке обратный корню. Ветви направлены ${a>0?'вверх — коэффициент положительный':'вниз — перед скобками минус'}.`};},3);
+add('adv',1,0,'func',()=>{const h=ri(-2,2),k=-ri(2,5),u=pick([-2,-1,1,2]),x=h+u,y=k+u*u;
+  return {q:`${plot({...PG,fns:[t=>(t-h)**2+k]})}The graph of y = f(x) is shown. What is the value of f(${m(x)})?`,answer:y,d:[x,k,-y,u*u],
+    expl:`f(${m(x)}) — это высота графика над точкой x = ${m(x)}. Находим ${m(x)} на оси x, поднимаемся или опускаемся до кривой: y = ${m(y)}.`};},0);
+add('adv',2,0,'expfn',()=>{const a=pick([2,3]);
+  return {q:`${plot({x:[-1,5],y:[-1,13],fns:[x=>a*2**x],pts:[[0,a],[1,2*a],[2,4*a]],ty:2})}The graph of the exponential function f is shown, with three of its points marked. Which equation defines f?`,...mc(`f(x) = ${a}(2)<sup>x</sup>`,[`f(x) = 2(${a+1})<sup>x</sup>`,`f(x) = ${a}(3)<sup>x</sup>`,`f(x) = ${a}x + 2`,`f(x) = ${a+1}(2)<sup>x</sup>`]),
+    expl:`При x = 0 значение ${a} — это начальный коэффициент. Каждый шаг вправо значение удваивается (${a}, ${2*a}, ${4*a}), значит основание 2: f(x) = ${a}(2)^x.`};},0);
+add('adv',2,1,'systems',()=>{const h=ri(-1,1),k=-ri(2,4);const [u,v]=pick([[-2,1],[-1,2],[-2,-1],[1,2],[-1,1],[-2,2]]),A=[h+u,k+u*u],B=[h+v,k+v*v],sl=u+v,w=ri(0,1)?A:B;
+  return {q:`${plot({...PG,fns:[x=>(x-h)**2+k,x=>sl*(x-A[0])+A[1]]})}The graphs of a linear equation and a quadratic equation are shown. Which of the following points is a solution to the system of the two equations?`,...mc(P2(...w),[P2(h,k),P2(w[1],w[0]),P2(w[0],-w[1]),P2(-w[0],w[1]),P2(0,(0-h)**2+k)]),
+    expl:`Решения системы — точки, где прямая пересекает параболу: ${P2(...A)} и ${P2(...B)}. Вершина параболы и её пересечение с осью y решениями не являются.`};},2);
+function scat(){const up=ri(0,1),s=pick([.5,1])*(up?1:-1),c=up?ri(1,2):ri(8,9),pts=[];
+  for(let x=1;x<=9;x++){const e=pick([-1.4,-1,-.7,.7,1,1.4]);pts.push([x,Math.max(.3,Math.min(9.7,c+s*x+e))]);}
+  return {s,c,pts,f:x=>c+s*x};}
+add('psda',1,0,'scatter',()=>{let g,Xs;do{g=scat();Xs=[2,4,6,8].filter(X=>{const y=g.c+g.s*X;return y>=2&&y<=8;});}while(!Xs.length);const X=pick(Xs),v=(g.c+g.s*X)*10;
+  return {q:`${plot({x:[0,10],y:[0,10],sy:10,fns:[g.f],pts:g.pts})}The scatterplot shows the relationship between two variables, x and y. A line of best fit is also shown. For x = ${X}, what y-value does the line of best fit predict?`,...mc(v,[v+10,v-10,v+20,v-20]),
+    expl:`Находим x = ${X} на горизонтальной оси, поднимаемся до линии (не до точки!) и читаем значение на оси y: ${v}.`};},0);
+add('psda',2,0,'scatter',()=>{const g=scat(),n=g.pts.filter(p=>p[1]>g.f(p[0])).length;
+  return {q:`${plot({x:[0,10],y:[0,10],fns:[g.f],pts:g.pts})}The scatterplot shows 9 data points and a line of best fit. For how many of the data points is the actual y-value greater than the y-value predicted by the line of best fit?`,answer:n,d:[9-n,n+1,n-1,9],
+    expl:`Фактическое значение больше прогноза, когда точка лежит выше линии. Считаем точки над линией: ${n}.`};},2);
+add('psda',2,0,'scatter',()=>{const g=scat(),e=(s,c)=>`y = ${lx(s,c)}`;
+  return {q:`${plot({x:[0,10],y:[0,10],pts:g.pts})}Which of the following equations is the most appropriate linear model for the data shown in the scatterplot?`,...mc(e(g.s,g.c),[e(-g.s,g.c),e(g.s,-g.c),e(-g.s,-g.c)]),
+    expl:`Точки идут ${g.s>0?'вверх — наклон положительный':'вниз — наклон отрицательный'}. Продолжение линии пересекает ось y около ${g.c} — свободный член положительный. Подходит ${e(g.s,g.c)}.`};},1);
+const CATS=[['Mon','Tue','Wed','Thu','Fri'],['Art','Music','Drama','Chess','Coding'],['Red','Blue','Green','Black','White']];
+add('psda',1,0,'charts',()=>{const L=pick(CATS);let v;do{v=L.map(()=>ri(2,12)*5);}while(Math.max(...v)===Math.min(...v));let i,j;do{i=ri(0,4);j=ri(0,4);}while(v[i]<=v[j]);
+  return {q:`${chart(L,v,60,10)}The bar graph shows the number of students in each of five groups. How many more students are in the ${L[i]} group than in the ${L[j]} group?`,answer:v[i]-v[j],d:[v[i]+v[j],v[i],v[j],(v[i]-v[j])/5],
+    expl:`Читаем высоту столбцов: ${L[i]} — ${v[i]}, ${L[j]} — ${v[j]}. Разница: ${v[i]-v[j]}.`};},0);
+add('psda',2,0,'charts',()=>{const L=pick(CATS),v=L.map(()=>ri(2,12)*5),i=ri(0,4),T=v.reduce((a,b)=>a+b,0);
+  return {q:`${chart(L,v,60,10)}The bar graph shows the number of students in each of five groups. What fraction of all the students are in the ${L[i]} group?`,...FR(v[i],T),d:[[v[i],T-v[i]],[1,5],[v[i],100],[T-v[i],T]],
+    expl:`Всего студентов: ${v.join(' + ')} = ${T}. В группе ${L[i]} — ${v[i]}. Доля: ${v[i]}/${T} = ${frS(v[i],T)}.`};},0);
+function yrs(){const y0=2015,L=[],v=[ri(2,5)*10];for(let i=0;i<7;i++){L.push(y0+i);if(i)v.push(Math.max(10,Math.min(90,v[i-1]+pick([-20,-10,10,10,20,30,40]))));}return {L,v};}
+add('psda',1,0,'charts',()=>{let g,d,mx;do{g=yrs();d=g.v.slice(1).map((x,i)=>x-g.v[i]);mx=Math.max(...d);}while(mx<=0||d.filter(x=>x===mx).length>1);const i=d.indexOf(mx),f=k=>`${g.L[k]} and ${g.L[k+1]}`;
+  return {q:`${chart(g.L,g.v,100,20,true)}The line graph shows the number of members of a club at the end of each year. Between which two consecutive years did the number of members increase the most?`,...mc(f(i),[0,1,2,3,4,5].filter(k=>k!==i).map(f)),
+    expl:`Самый крутой подъём линии — между ${g.L[i]} и ${g.L[i+1]}: с ${g.v[i]} до ${g.v[i+1]}, рост на ${mx}.`};},1);
+add('psda',2,0,'charts',()=>{const g=yrs(),i=ri(0,3),j=i+ri(2,3),dv=g.v[j]-g.v[i];
+  return {q:`${chart(g.L,g.v,100,20,true)}The line graph shows the number of members of a club at the end of each year. What was the average rate of change, in members per year, from ${g.L[i]} to ${g.L[j]}?`,...FR(dv,j-i),d:[[dv,1],[dv,j-i+1],[g.v[j]+g.v[i],j-i],[-dv,j-i]],
+    expl:`Средняя скорость изменения = (конечное − начальное) / число лет = (${g.v[j]} − ${g.v[i]}) / ${j-i} = ${frS(dv,j-i)}. Промежуточные годы не важны.`};},2);
+add('psda',2,0,'stats',()=>{const c=[ri(1,4),ri(2,5),ri(2,5),ri(1,4),0];c[4]=20-c[0]-c[1]-c[2]-c[3];const s=c.reduce((a,x,i)=>a+x*i,0);
+  return {q:`${tbl(['Number of pets','Number of students'],c.map((x,i)=>[i,x]))}The table shows the number of pets owned by each of 20 students. What is the mean number of pets per student?`,...DEC(s/20),d:[2,s/5,s/10,4],
+    expl:`Сумма: ${c.map((x,i)=>`${i} · ${x}`).join(' + ')} = ${s}. Делим на 20 учеников: ${+(s/20).toFixed(2)}. Каждое значение умножаем на то, сколько раз оно встречается.`};},0);
+add('psda',3,0,'stats',()=>{const c=[ri(2,6),ri(2,6),ri(2,6),ri(2,6),0];let n=c[0]+c[1]+c[2]+c[3];c[4]=(n%2?2:1)+ri(0,1)*2;n+=c[4];const mid=(n+1)/2;let cum=0,med=0;for(let i=0;i<5;i++){cum+=c[i];if(cum>=mid){med=i+1;break;}}
+  return {q:`${tbl(['Score','Number of quizzes'],c.map((x,i)=>[i+1,x]))}The table shows the scores on ${n} quizzes. What is the median score?`,answer:med,d:[3,c.indexOf(Math.max(...c))+1,med+1,med-1,c[2]],
+    expl:`Всего ${n} значений, медиана — ${mid}-е по порядку. Считаем накопленным итогом по строкам таблицы: ${mid}-е значение попадает на оценку ${med}.`};},1);
+add('psda',2,0,'prob',()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40);
+  return {q:`${tbl(['','Bus','Car','Total'],[['Grade 9',a,b,a+b],['Grade 10',c,d,c+d],['Total',a+c,b+d,a+b+c+d]])}The table shows how students get to school. If one of the students who travel by car is selected at random, what is the probability that the student is in Grade 9?`,...FR(b,b+d),d:[[b,a+b],[b,a+b+c+d],[d,b+d],[b,d]],
+    expl:`Выбираем только из тех, кто ездит на машине: их ${b+d}. Из них девятиклассников ${b}. Вероятность: ${b}/${b+d}${frS(b,b+d)===`${b}/${b+d}`?'':' = '+frS(b,b+d)}.`};},1);
+add('geo',1,0,'angles',()=>{const a=ri(25,65),opp=ri(0,1);
+  return {q:`${opp?crossFig(a+'°','x°','',''):crossFig(a+'°','','x°','')}${NTS}Two lines intersect as shown. What is the value of x?`,answer:opp?a:180-a,d:[a,180-a,Math.abs(90-a),2*a,360-a],
+    expl:opp?`Углы напротив друг друга — вертикальные, они равны: x = ${a}.`:`Соседние углы при пересечении двух прямых — смежные, в сумме 180°: x = 180 − ${a} = ${180-a}.`};},0);
+add('geo',2,0,'angles',()=>{const a=ri(35,80),pos=pick(['corr','alt','same']);
+  return {q:`${parFig(a+'°','x°',pos)}${NTS}In the figure, lines ℓ and k are parallel. What is the value of x?`,answer:pos==='same'?180-a:a,d:[a,180-a,Math.abs(90-a),2*a,360-a],
+    expl:pos==='same'?`Эти углы лежат между параллельными прямыми по одну сторону от секущей (same-side interior) — в сумме 180°: x = ${180-a}.`:`Это ${pos==='corr'?'соответственные (corresponding)':'накрест лежащие (alternate interior)'} углы при параллельных прямых — они равны: x = ${a}.`};},1);
+add('geo',2,0,'angles',()=>{const a=ri(30,70),c=ri(30,70);
+  return {q:`${triExt(a+'°',c+'°','x°')}${NTS}In the figure, side AB of triangle ABC is extended past B. What is the value of x?`,answer:a+c,d:[180-a-c,180-a,180-c,360-a-c],
+    expl:`Внешний угол треугольника равен сумме двух внутренних, не смежных с ним: x = ${a} + ${c} = ${a+c}.`};},3);
+add('geo',2,1,'trig',()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),k=ri(1,2),t=pick(['sin','cos','tan']),cor={sin:[a,c],cos:[b,c],tan:[a,b]}[t];
+  return {q:`${rtFig(b*k,a*k,c*k)}${NTS}In right triangle ABC shown, angle C is the right angle. What is the value of ${t} A?`,...mc(fr(...cor),[fr(a,c),fr(b,c),fr(a,b),fr(b,a),fr(c,b),fr(c,a)]),
+    expl:`Относительно угла A: противолежащий катет BC = ${a*k}, прилежащий AC = ${b*k}, гипотенуза AB = ${c*k}. ${t} A = ${t==='sin'?'противолежащий / гипотенуза':t==='cos'?'прилежащий / гипотенуза':'противолежащий / прилежащий'} = ${fr(...cor)}.`};},0);
+add('geo',2,0,'area',()=>{const W=ri(8,14),H=ri(6,10),w=ri(2,W-3),h=ri(2,H-2);
+  return {q:`${lFig(W,H,W-w,H-h)}${NTS}All angles in the figure shown are right angles, and the side lengths are given in meters. What is the area of the figure, in square meters?`,answer:W*H-w*h,d:[W*H,w*h,W*H-(W-w)*(H-h),2*(W+H),W*H+w*h],
+    expl:`Достраиваем до прямоугольника ${W} × ${H} = ${W*H}. Вырезанный угол: (${W} − ${W-w}) × (${H} − ${H-h}) = ${w} × ${h} = ${w*h}. Площадь: ${W*H} − ${w*h} = ${W*H-w*h}.`};},1);
+add('geo',2,0,'similar',()=>{const a=pick([4,6,8]),k=pick([1.5,2,2.5,3]),b=ri(3,9);
+  return {q:`${simFig(a,b,a*k,'x')}${NTS}The two triangles shown are similar, with corresponding sides labeled. What is the value of x?`,...DEC(b*k),d:[b+a*k-a,Math.round(b/k*100)/100,a*k+b,b*k*k],
+    expl:`Коэффициент подобия: ${a*k} / ${a} = ${k}. Сторона x соответствует стороне ${b}: x = ${b} · ${k} = ${b*k}.`};},0);
+add('geo',3,0,'pyth',()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[6,8,10],[9,12,15]]),ar=ri(0,1);
+  return {q:`${rtFig('',a,c)}${NTS}In right triangle ABC shown, angle C is the right angle, BC = ${a}, and AB = ${c}. What is the ${ar?'area':'perimeter'} of the triangle?`,answer:ar?a*b/2:a+b+c,d:ar?[a*b,a*c/2,a+b+c,b]:[a+c,a*b/2,a+b,2*a+c],
+    expl:`Сначала второй катет: AC = √(${c}${sq} − ${a}${sq}) = √${c*c-a*a} = ${b}. ${ar?`Площадь = ½ · ${a} · ${b} = ${a*b/2}`:`Периметр = ${a} + ${b} + ${c} = ${a+b+c}`}.`};},0);
+add('geo',3,2,'circle',()=>{const [th,r]=pick([[90,4],[90,6],[90,8],[60,6],[60,12],[120,3],[120,6],[120,9],[45,4],[45,8]]),n=r*r*th/360,f=x=>x===1?'π':`${m(+x.toFixed(2))}π`;
+  return {q:`${secFig(th+'°',r)}${NTS}The circle shown has a radius of ${r}, and the central angle shown measures ${th}°. What is the area of the sector formed by this angle?`,...mc(n,[2*n,r*r,r*th/180,3*n],f),
+    expl:`Сектор — доля ${th}/360 от всего круга: (${th}/360) · π · ${r}${sq} = ${f(n)}.`};},1);
+add('geo',2,2,'circleeq',()=>{const h=nz(-3,3),k=nz(-3,3),r=pick([2,3]),e=(a,b,c)=>`(x ${sg(-a)})${sq} + (y ${sg(-b)})${sq} = ${c}`;
+  return {q:`${plot({...PG,circ:[h,k,r],pts:[[h,k]]})}The circle shown in the xy-plane has its center at the marked point. Which equation represents the circle?`,...mc(e(h,k,r*r),[e(-h,-k,r*r),e(h,k,r),e(-h,-k,r)]),
+    expl:`Центр ${P2(h,k)}, радиус ${r}. В уравнении (x − h)${sq} + (y − k)${sq} = r${sq} знаки в скобках обратные координатам центра, а справа квадрат радиуса: ${r*r}.`};},0);
+add('geo',2,0,'pyth',()=>{const [a,b,c]=pick([[3,4,5],[6,8,10],[5,12,13],[8,15,17]]),x1=ri(-4,4),y1=ri(-4,4);
+  return {q:`In the xy-plane, what is the distance between the points ${P2(x1,y1)} and ${P2(x1+a,y1+b)}?`,answer:c,d:[a+b,a*a+b*b,b-a,2*c],
+    expl:`Разности координат — катеты прямоугольного треугольника: ${a} и ${b}. Расстояние = √(${a}${sq} + ${b}${sq}) = √${c*c} = ${c}.`};},0);
+add('geo',1,0,'area',()=>{const l=ri(7,15),w=ri(3,l-2);
+  return {q:`${rectFig(l,'x')}${NTS}The rectangle shown has a perimeter of ${2*(l+w)}. What is the value of x?`,answer:w,d:[2*w,2*w+l,l+w,l],
+    expl:`Периметр = 2 · длина + 2 · ширина: 2 · ${l} + 2x = ${2*(l+w)}, 2x = ${2*w}, x = ${w}.`};},1);
+add('geo',2,0,'angles',()=>{const a=ri(20,110);
+  return {q:`${isoFig(a+'°','x°')}${NTS}In the isosceles triangle shown, the two marked sides are equal. What is the value of x?`,...DEC((180-a)/2),d:[180-a,a,Math.abs(180-2*a),(360-a)/2],
+    expl:`В равнобедренном треугольнике углы при основании равны: 2x + ${a} = 180, x = ${(180-a)/2}.`};},2);
+
+/* ---------- more problem types without figures ---------- */
+add('alg',1,0,'linmodel',()=>{const a=ri(5,15),b=ri(10,40),k=ri(2,8);
+  return {q:`The function f(x) = ${a}x + ${b} gives the total cost, in dollars, of renting a kayak for x hours. What is the total cost of renting a kayak for ${k} hours?`,...mc(a*k+b,[a*k,(a+b)*k,b*k+a,a+b+k],money),
+    expl:`Подставляем x = ${k}: ${a} · ${k} + ${b} = ${a*k+b}.`};},0);
+add('alg',2,0,'linmodel',()=>{const a=ri(2,6),b=ri(8,20),sl=ri(0,1),o=[`The plant grows ${a} centimeters each week.`,`The plant grows ${b} centimeters each week.`,`The plant was ${a} centimeters tall when it was first measured.`,`The plant was ${b} centimeters tall when it was first measured.`];
+  return {q:`The equation h = ${a}t + ${b} models the height h, in centimeters, of a plant t weeks after it was first measured. What is the best interpretation of ${sl?a:b} in this context?`,...mc(o[sl?0:3],o),
+    expl:sl?`${a} — коэффициент при t, то есть наклон: на столько меняется высота за одну неделю.`:`${b} — свободный член: значение h при t = 0, то есть высота в момент первого измерения.`};},1);
+add('alg',2,0,'slope',()=>{let k,b;do{k=nz(-4,5);b=nz(-6,8);}while(k===b);const xs=[1,2,3,4];
+  return {q:`${htbl('x','y',xs,xs.map(x=>k*x+b))}The table shows four values of x and their corresponding values of y. There is a linear relationship between x and y. Which equation represents this relationship?`,...mc(`y = ${lx(k,b)}`,[`y = ${lx(b,k)}`,`y = ${lx(-k,b)}`,`y = ${lx(k,k+b)}`,`y = ${lx(k,-b)}`]),
+    expl:`При росте x на 1 значение y меняется на ${m(k)} — это наклон. Подставляем первую точку: ${m(k+b)} = ${m(k)} · 1 + b, b = ${m(b)}. Значение при x = 1 — это ещё не b.`};},1);
+add('alg',2,0,'lin1',()=>{let q,p,c,b,d;do{q=ri(2,7);p=nz(-9,9);c=ri(1,5);b=ri(1,9);d=b+p;}while(d===0);
+  return {q:`What value of x is the solution to the equation ${eq(`${c+q}x + ${b} = ${c}x ${sg(d)}`)}`,...FR(p,q),d:[[-p,q],[q,p],[d+b,q],[p,2*c+q]],
+    expl:`Переносим x влево, числа вправо: ${c+q}x − ${c}x = ${m(d)} − ${b}, то есть ${q}x = ${m(p)}, x = ${frS(p,q)}.`};},0);
+add('alg',3,0,'lin1',()=>{const t=ri(0,3),a=ri(2,6),b=ri(2,7),c=ri(10,30);
+  const T=[[`The perimeter P of a rectangle is given by P = 2l + 2w. Which equation gives l in terms of P and w?`,`l = (P − 2w) / 2`,[`l = P − 2w`,`l = (P + 2w) / 2`,`l = 2P − 2w`],`Вычитаем 2w: P − 2w = 2l. Делим на 2: l = (P − 2w) / 2.`],
+    [`The area A of a triangle is given by A = ½bh. Which equation gives h in terms of A and b?`,`h = 2A / b`,[`h = A / (2b)`,`h = Ab / 2`,`h = 2Ab`],`Умножаем на 2: 2A = bh. Делим на b: h = 2A / b.`],
+    [`The equation y = mx + b relates the variables x and y, where m ≠ 0. Which equation gives x in terms of y, m, and b?`,`x = (y − b) / m`,[`x = (y + b) / m`,`x = m(y − b)`,`x = y / m − b`],`Вычитаем b: y − b = mx. Делим на m: x = (y − b) / m. Делить нужно всю разность.`],
+    [`Which equation gives y in terms of x for the equation ${a}x + ${b}y = ${c}?`,`y = (${c} − ${a}x) / ${b}`,[`y = (${c} + ${a}x) / ${b}`,`y = ${c} − ${a}x − ${b}`,`y = (${a}x − ${c}) / ${b}`],`Вычитаем ${a}x: ${b}y = ${c} − ${a}x. Делим на ${b}: y = (${c} − ${a}x) / ${b}.`]][t];
+  return {q:T[0],...mc(T[1],T[2]),expl:T[3]};},0);
+add('alg',2,0,'slope',()=>{let p,q;do{p=pick([2,3,4,5])*pick([1,-1]);q=ri(1,5);}while(gcd(Math.abs(p),q)!==1);const c=nz(-6,6);
+  return {q:`Line k is defined by ${eq(`y = ${lxf(p,q,c)}`)}Line j is perpendicular to line k in the xy-plane. What is the slope of line j?`,...FR(-q,p),d:[[p,q],[-p,q],[q,p]],
+    expl:`Наклон линии k равен ${frS(p,q)}. У перпендикуляра наклон «перевёрнутый с обратным знаком»: ${frS(-q,p)}. Проверка: их произведение равно −1.`};},4);
+add('alg',2,0,'slope',()=>{let k,b,x1,y1;do{k=nz(-4,4);b=ri(-6,6);x1=nz(-3,4);y1=ri(-6,6);}while(y1===k*x1+b||y1-k*x1===0);const c=y1-k*x1;
+  return {q:`Line p is defined by y = ${lx(k,b)}. Line t is parallel to line p and passes through the point ${P2(x1,y1)}. Which equation defines line t?`,...mc(`y = ${lx(k,c)}`,[`y = ${lx(k,b)}`,`y = ${lx(-k,y1+k*x1)}`,`y = ${lx(k,y1)}`,`y = ${lx(k,-c)}`]),
+    expl:`У параллельных прямых наклон одинаковый: ${m(k)}. Подставляем точку: ${m(y1)} = ${m(k)} · (${m(x1)}) + b, b = ${m(c)}. Получаем y = ${lx(k,c)}.`};},4);
+add('alg',2,0,'slope',()=>{const a=ri(2,7),b=ri(2,7),c=nz(-12,15);
+  return {q:`In the xy-plane, the graph of ${a}x + ${b}y = ${m(c)} crosses the x-axis at the point (p, 0). What is the value of p?`,...FR(c,a),d:[[c,b],[a,c],[-c,a],[c-b,a]],
+    expl:`На оси x координата y = 0. Подставляем: ${a}p = ${m(c)}, p = ${frS(c,a)}.`};},3);
+add('alg',3,0,'systems',()=>{let a,t;do{a=ri(2,6);t=ri(1,11);}while(t%a===0);const b=ri(1,4),y=ri(1,5);
+  return {q:`${eq(`${a}x + ${b===1?'':b}y = ${t+b*y}`)}${eq(`${a}x − ${b===1?'':b}y = ${m(t-b*y)}`)}The solution to the given system of equations is (x, y). What is the value of x?`,...FR(t,a),d:[[2*t,a],[t,2*a],[t+b*y,a],y],
+    expl:`Складываем уравнения — y исчезает: ${2*a}x = ${2*t}, x = ${frS(t,a)}. Ответ дробный, это нормально: вводи ${frS(t,a)} или десятичную запись.`};},1);
+add('alg',2,0,'ineq',()=>{const v=ri(0,1),a=ri(100,400),b=ri(15,45),W=a+b*ri(10,40)+ri(1,9),e=ri(8,15),s=ri(20,90),G=s+e*ri(10,30)+ri(1,7);
+  return v?{q:`A cart can hold at most ${W} pounds. It already holds a ${a}-pound crate. Which inequality describes the possible numbers n of ${b}-pound boxes that can also be loaded onto the cart?`,...mc(`${b}n + ${a} ≤ ${W}`,[`${b}n + ${a} ≥ ${W}`,`${a}n + ${b} ≤ ${W}`,`${b}n − ${a} ≤ ${W}`]),expl:`Вес коробок ${b}n плюс ящик ${a} должен быть не больше ${W}. «At most» — значит ≤.`}
+   :{q:`Nadia needs at least $${G} for a trip. She has saved $${s} and earns $${e} per hour. Which inequality describes the numbers of hours h she can work to have enough money?`,...mc(`${e}h + ${s} ≥ ${G}`,[`${e}h + ${s} ≤ ${G}`,`${s}h + ${e} ≥ ${G}`,`${e}h − ${s} ≥ ${G}`]),expl:`Заработок ${e}h плюс накопленные ${s} должен быть не меньше ${G}. «At least» — значит ≥.`};},1);
+add('alg',3,0,'ineq',()=>{for(let t=0;t<200;t++){const k1=ri(1,3),b1=ri(-3,3),k2=-ri(1,2),b2=ri(6,12),ok=[],no=[];
+    for(let i=0;i<40;i++){const x=ri(-3,6),y=ri(-5,14),A=y>k1*x+b1,B=y<k2*x+b2,on=y===k1*x+b1||y===k2*x+b2,s=P2(x,y);if(on)continue;if(A&&B){if(!ok.includes(s))ok.push(s);}else if(!no.includes(s))no.push(s);}
+    if(ok.length&&no.length>=3)return {q:`${eq(`y > ${lx(k1,b1)}`)}${eq(`y &lt; ${lx(k2,b2)}`)}Which of the following points (x, y) is a solution to the given system of inequalities?`,...mc(ok[0],no.slice(0,3)),
+      expl:`Подставляем каждую точку в оба неравенства — должны выполняться оба сразу. Подходит только ${ok[0]}.`};}
+  return {q:'',answer:NaN,expl:''};},3);
+add('alg',2,0,'slope',()=>{let p,q;do{p=nz(-9,9);q=nz(-9,9);}while(p===q);
+  return {q:`In the xy-plane, the graph of ${eq(`${cf(q)}x ${p<0?'−':'+'} ${Math.abs(p)===1?'':Math.abs(p)}y = ${m(p*q)}`)}has an x-intercept at (a, 0) and a y-intercept at (0, b). What is the value of a + b?`,answer:p+q,d:[p*q,p,q,-(p+q)],
+    expl:`При y = 0: ${m(q)}x = ${m(p*q)}, x = ${m(p)}. При x = 0: ${m(p)}y = ${m(p*q)}, y = ${m(q)}. Сумма: ${m(p+q)}.`};},3);
+add('alg',1,0,'lin1',()=>{const k=ri(2,6),n=ri(3,12),d=ri(1,9);
+  return {q:`${k} times a number n, decreased by ${d}, is equal to ${k*n-d}. What is the value of n?`,answer:n,d:[k*n,Math.round((k*n-2*d)/k),n+d,k*n-d-k],
+    expl:`Записываем уравнение: ${k}n − ${d} = ${k*n-d}. Прибавляем ${d}: ${k}n = ${k*n}, n = ${n}.`};},0);
+add('adv',1,0,'poly',()=>{const a=ri(4,8),d=ri(1,3),b=nz(-6,6),e=nz(-5,5),c=nz(-8,8),f=nz(-7,7);
+  return {q:`Which expression is equivalent to ${eq(`(${poly(a,b,c)}) − (${poly(d,e,f)})`)}`,...mc(poly(a-d,b-e,c-f),[poly(a-d,b+e,c-f),poly(a-d,b-e,c+f),poly(a+d,b+e,c+f),poly(a-d,b+e,c+f)]),
+    expl:`Минус перед скобкой меняет знак каждого слагаемого во второй скобке. Складываем подобные: x${sq}: ${a} − ${d}; x: ${m(b)} − (${m(e)}); числа: ${m(c)} − (${m(f)}). Итог: ${poly(a-d,b-e,c-f)}.`};},4);
+add('adv',1,0,'poly',()=>{let a,b;do{a=ri(1,5);b=ri(1,7);}while(gcd(a,b)!==1);const g=ri(2,6),A=a===1?'':a;
+  return {q:`Which expression is equivalent to ${a*g}x${sq} + ${b*g}x?`,...mc(`${g}x(${A}x + ${b})`,[`${g}(${A}x${sq} + ${b})`,`${g}x(${A}x + ${b*g})`,`x(${A}x + ${b})`,`${g}x${sq}(${a} + ${b}x)`]),
+    expl:`Общий множитель обоих слагаемых — ${g}x. Выносим: ${a*g}x${sq} = ${g}x · ${A}x и ${b*g}x = ${g}x · ${b}.`};},3);
+add('adv',2,0,'exp',()=>{const c=ri(1,4),a=c+ri(1,5),d=ri(1,4),b=d+ri(1,5),e=(u,v)=>xp('x',u)+xp('y',v);
+  return {q:`Which expression is equivalent to ${eq(`${e(a,b)} / ${e(c,d)}`)}where x ≠ 0 and y ≠ 0?`,...mc(e(a-c,b-d),[e(a+c,b+d),e(a-c,b+d),e(a+c,b-d),e(a*c,b*d)]),
+    expl:`При делении степеней с одинаковым основанием показатели вычитаются: x: ${a} − ${c} = ${a-c}; y: ${b} − ${d} = ${b-d}.`};},2);
+add('adv',2,0,'exp',()=>{const [a,b]=pick([[2,3],[3,2],[3,4],[4,3],[5,2],[2,5],[3,5],[5,3]]),rt=(n,e)=>`${n===2?'':`<sup>${n}</sup>`}√(${xp('x',e)})`;
+  return {q:`Which expression is equivalent to x<sup>${a}/${b}</sup>, where x > 0?`,...mc(rt(b,a),[rt(a,b),`x<sup>${a}</sup> / ${b}`,`1 / x<sup>${a*b}</sup>`]),
+    expl:`Дробный показатель: знаменатель ${b} — степень корня, числитель ${a} — степень числа под корнем.`};},3);
+add('adv',2,0,'expfn',()=>{const P=pick([500,1200,2000,4500,8000]),r=pick([2,3,4,5,6,8,12,15]),up=ri(0,1),f=v=>+v.toFixed(2),e=v=>`P(t) = ${P}(${v})<sup>t</sup>`;
+  return {q:`A town has a population of ${P.toLocaleString('en-US')}. The population ${up?'increases':'decreases'} by ${r}% each year. Which function models the population P(t) of the town t years from now?`,...mc(e(f(up?1+r/100:1-r/100)),[e(f(up?1-r/100:1+r/100)),e(f(r/100)),e(r),`P(t) = ${P} ${up?'+':'−'} ${f(r/100)}t`]),
+    expl:`${up?'Рост':'Убывание'} на ${r}% в год — это умножение на ${f(up?1+r/100:1-r/100)} каждый год (1 ${up?'+':'−'} ${f(r/100)}). Умножение на одно и то же число — показательная функция.`};},1);
+add('adv',2,0,'expfn',()=>{const a=pick([50,100,150,200,300]),d=ri(2,6),n=ri(2,5);
+  return {q:`The number of bacteria in a sample doubles every ${d} hours. There are ${a} bacteria in the sample at the start. How many bacteria are in the sample after ${d*n} hours?`,answer:a*2**n,d:[a*2*n,a*2**(n-1),a*2**(n+1),a*n],
+    expl:`За ${d*n} часов проходит ${n} удвоений: ${a} · 2^${n} = ${a} · ${2**n} = ${a*2**n}. Число удвоений — это время, делённое на период.`};},0);
+add('adv',3,1,'quad',()=>{const a=ri(2,7),b=nz(-9,9),c=-ri(1,9);
+  return {q:`What is the sum of the solutions to the equation ${eq(`${poly(a,b,c)} = 0`)}`,...FR(-b,a),d:[[b,a],[c,a],[-b,1],[-c,a]],
+    expl:`Сумма корней ax${sq} + bx + c = 0 равна −b / a = ${frS(-b,a)}. Решать уравнение не нужно. Корни существуют: дискриминант положителен.`};},3);
+add('adv',3,1,'quad',()=>{const t=ri(0,2),r=nz(-6,6);let b,c;if(t===0){b=-2*r;c=r*r;}else if(t===1){const r2=r+ri(1,5);b=-(r+r2);c=r*r2;}else{b=2*ri(-3,3);c=b*b/4+ri(1,6);}
+  const o=['Zero','Exactly one','Exactly two','Infinitely many'];
+  return {q:`How many distinct real solutions does the equation ${eq(`${poly(1,b,c)} = 0`)}have?`,...mc(o[t===0?1:t===1?2:0],o),
+    expl:`Дискриминант D = b${sq} − 4ac = ${b*b} − ${m(4*c)} = ${m(b*b-4*c)}. ${t===0?'D = 0 — ровно одно решение':t===1?'D > 0 — два решения':'D < 0 — действительных решений нет'}.`};},2);
+add('adv',3,1,'vertex',()=>{const b=pick([-5,-3,-1,1,3,5]),c=ri(-5,9);
+  return {q:`The function f is defined by ${eq(`f(x) = ${poly(1,b,c)}`)}What is the minimum value of f(x)?`,...FR(4*c-b*b,4),d:[c,[-b,2],[4*c+b*b,4],[4*c-2*b*b,4]],
+    expl:`Вершина при x = −b / 2a = ${frS(-b,2)}. Подставляем: f = ${frS(b*b,4)} − ${frS(b*b,2)} ${sg(c)} = ${frS(4*c-b*b,4)}. Ответ дробный.`};},1);
+add('adv',2,1,'vertex',()=>{const v=pick([10,15,20,25,30,35,40]),h0=ri(1,6),tm=ri(0,1)||v%10!==0;
+  return {q:`The function ${eq(`h(t) = −5t${sq} + ${v}t + ${h0}`)}gives the height h(t), in meters, of a ball t seconds after it is thrown upward. ${tm?'How many seconds after it is thrown does the ball reach its maximum height?':'What is the maximum height, in meters, that the ball reaches?'}`,...DEC(tm?v/10:v*v/20+h0),d:tm?[v/5,v,h0,v/20]:[v*v/20,v/10,h0,v*v/10+h0],
+    expl:`Максимум — в вершине: t = −b / 2a = ${v} / 10 = ${v/10}.${tm?'':` Подставляем: −5 · ${(v/10)**2} + ${v} · ${v/10} + ${h0} = ${v*v/20+h0}.`}`};},1);
+add('adv',2,1,'radical',()=>{let a,b;do{a=nz(-7,7);b=nz(-7,7);}while(a===b||a+b===0);
+  return {q:`Which expression is equivalent to ${eq(`(${poly(1,a+b,a*b)}) / (x ${sg(a)})`)}where x ≠ ${m(-a)}?`,...mc(`x ${sg(b)}`,[`x ${sg(a)}`,`x ${sg(-b)}`,`x ${sg(a+b)}`,`x ${sg(a*b)}`]),
+    expl:`Раскладываем числитель: (x ${sg(a)})(x ${sg(b)}). Сокращаем на (x ${sg(a)}): остаётся x ${sg(b)}.`};},1);
+add('adv',1,0,'func',()=>{const a=ri(2,7),b=nz(-9,9),x=ri(2,9);
+  return {q:`The function f is defined by f(x) = ${lx(a,b)}. For what value of x is f(x) = ${m(a*x+b)}?`,answer:x,d:[a*(a*x+b)+b,a*x,Math.round(x+2*b/a),a*x+b],
+    expl:`Здесь дано значение функции, а найти нужно x: ${lx(a,b)} = ${m(a*x+b)}, ${a}x = ${a*x}, x = ${x}.`};},0);
+add('adv',2,0,'func',()=>{const a=pick([1,2,3,5,6,7]),b=ri(1,6),n=pick([1,3]);
+  return {q:`The function f is defined by f(x) = ${a===1?'':a}x${sq} + ${b}. What is the value of f(${n}/2)?`,...FR(a*n*n+4*b,4),d:[[a*n+2*b,2],[a*n*n+2*b,2],[a*n*n+b,4],a*n*n+b],
+    expl:`(${n}/2)${sq} = ${n*n}/4. Тогда f = ${a} · ${n*n}/4 + ${b} = ${frS(a*n*n+4*b,4)}.`};},0);
+add('adv',2,0,'func',()=>{const a=ri(2,5),b=nz(-6,6),c=nz(-5,5),k=nz(-3,4);
+  return {q:`The functions f and g are defined by f(x) = ${lx(a,b)} and g(x) = x${sq} ${sg(c)}. What is the value of f(g(${m(k)}))?`,answer:a*(k*k+c)+b,d:[(a*k+b)**2+c,(a*k+b)*(k*k+c),a*k*k+b,a*k+b+k*k+c],
+    expl:`Сначала внутренняя функция: g(${m(k)}) = ${k*k} ${sg(c)} = ${m(k*k+c)}. Потом внешняя: f(${m(k*k+c)}) = ${a} · (${m(k*k+c)}) ${sg(b)} = ${m(a*(k*k+c)+b)}.`};},1);
+add('adv',1,0,'func',()=>{const a=ri(1,9),p=ri(-9,12),k=nz(-8,8);
+  return {q:`For the function f, f(${a}) = ${m(p)}. The function g is defined by g(x) = f(x) ${sg(k)}. What is the value of g(${a})?`,answer:p+k,d:[p-k,a+k,p,p*k],
+    expl:`g получается из f сдвигом ${k>0?'вверх':'вниз'} на ${Math.abs(k)}: g(${a}) = f(${a}) ${sg(k)} = ${m(p)} ${sg(k)} = ${m(p+k)}.`};},2);
+add('adv',2,0,'abs',()=>{const a=ri(2,5),b=ri(1,9),k=ri(1,6);
+  return {q:`The function f is defined by f(x) = |${a}x − ${b}|. What is the value of f(−${k})?`,answer:a*k+b,d:[Math.abs(a*k-b),-(a*k+b),a*k,b-a*k],
+    expl:`Подставляем: |${a} · (−${k}) − ${b}| = |−${a*k+b}| = ${a*k+b}. Модуль всегда неотрицателен.`};},0);
+add('adv',3,0,'func',()=>{const [a,b,c]=shuffle([1,2,3,4,5,6,7]);
+  return {q:`In the xy-plane, which of the following points is an x-intercept of the graph of ${eq(`y = (x − ${a})(x + ${b})(x − ${c})`)}`,...mc(P2(-b,0),[P2(b,0),P2(-a,0),P2(-c,0),P2(0,-b)]),
+    expl:`x-intercepts — там, где y = 0, то есть один из множителей равен нулю: x = ${a}, x = −${b} или x = ${c}. Знак в точке обратный знаку в скобке.`};},3);
+add('adv',2,0,'quad',()=>{const a=nz(-5,8),k=ri(2,9);
+  return {q:`What is the greatest solution to the equation ${eq(`(x ${a?sg(-a):''})${sq} = ${k*k}`)}`,answer:a+k,d:[a-k,a+k*k,k,k-a],
+    expl:`Извлекаем корень с двумя знаками: x ${a?sg(-a):''} = ${k} или x ${a?sg(-a):''} = −${k}. Решения ${m(a+k)} и ${m(a-k)}, большее — ${m(a+k)}.`};},0);
+add('adv',3,0,'expfn',()=>{let a,b;do{a=ri(2,5);b=pick([2,3]);}while(a===b);const xs=[1,2,3,4];
+  return {q:`${htbl('x','f(x)',xs,xs.map(x=>a*b**x))}The table shows four values of x and their corresponding values of f(x), where f is an exponential function. Which equation defines f?`,...mc(`f(x) = ${a}(${b})<sup>x</sup>`,[`f(x) = ${b}(${a})<sup>x</sup>`,`f(x) = ${a*b}(${b})<sup>x</sup>`,`f(x) = ${a*b*(b-1)}x + ${a}`,`f(x) = ${a*b}x<sup>${b}</sup>`]),
+    expl:`Каждое следующее значение в ${b} раза больше — основание ${b}. Таблица начинается с x = 1: f(1) = a · ${b} = ${a*b}, значит a = ${a}. Число ${a*b} — это не начальное значение.`};},0);
+add('psda',1,0,'percent',()=>{let a,p;do{a=pick([20,25,40,50,80,200]);p=ri(1,19)*5;}while(a*p%100);
+  return {q:`${a*p/100} is what percent of ${a}?`,answer:p,d:[100-p,a*p/100,a-a*p/100,p/10],
+    expl:`Делим часть на целое: ${a*p/100} / ${a} = ${p/100}, то есть ${p}%.`};},0);
+add('psda',1,0,'percent',()=>{const n=ri(12,90),p=pick([5,15,35,45,65]);
+  return {q:`What is ${p}% of ${n}?`,...DEC(n*p/100),d:[n*p/10,n*p/1000,+(n/p).toFixed(2),n*(100-p)/100],
+    expl:`${p}% — это ${p/100}. Умножаем: ${p/100} · ${n} = ${+(n*p/100).toFixed(2)}.`};},0);
+add('psda',2,0,'percent',()=>{const o=pick([40,60,80,120,160,200,240]),p=pick([10,20,25,30,40,50]);
+  return {q:`After a ${p}% increase, the price of a jacket is ${money(o*(1+p/100))}. What was the price of the jacket, in dollars, before the increase?`,answer:o,d:[+(o*(1+p/100)*(1-p/100)).toFixed(2),o*(1+p/100)-p,+(o*(1-p/100)).toFixed(2),o+p],
+    expl:`Новая цена — это старая, умноженная на ${1+p/100}. Делим: ${+(o*(1+p/100)).toFixed(2)} / ${1+p/100} = ${o}. Вычитать ${p}% из новой цены нельзя — процент брался от старой.`};},2);
+add('psda',1,0,'ratio',()=>{const [u,v,f,u1]=pick([['yards','feet',3,'yard'],['feet','inches',12,'foot'],['hours','minutes',60,'hour'],['kilometers','meters',1000,'kilometer'],['pounds','ounces',16,'pound']]),n=ri(3,25);
+  return {q:`How many ${v} are equivalent to ${n} ${u}? (1 ${u1} = ${f.toLocaleString('en-US')} ${v})`,...mc(n*f,[n+f,n*f+f,n*(f-1),n*f*10],x=>x.toLocaleString('en-US')),
+    expl:`1 ${u1} = ${f} ${v}, поэтому умножаем: ${n} · ${f} = ${n*f}.`};},2);
+add('psda',2,0,'ratio',()=>{const v=pick([4,5,8,10,20,25]),ms=ri(3,60);
+  return {q:`A sample of a material has a mass of ${ms} grams and a volume of ${v} cubic centimeters. What is the density of the material, in grams per cubic centimeter?`,...DEC(ms/v),d:[+(v/ms).toFixed(3),ms*v,Math.abs(ms-v),ms+v],
+    expl:`Плотность = масса / объём = ${ms} / ${v} = ${+(ms/v).toFixed(3)}. «Per» в единицах подсказывает, что на что делить.`};},3);
+add('psda',2,0,'stats',()=>{const mm=ri(10,30),d=ri(4,8),A=[mm-1,mm-1,mm,mm+1,mm+1],B=[mm-2*d,mm-d,mm,mm+d,mm+2*d],sw=ri(0,1),X=sw?B:A,Y=sw?A:B,o=['The standard deviation of data set A is greater.','The standard deviation of data set B is greater.','The standard deviations are equal.','There is not enough information to compare them.'];
+  return {q:`Data set A: ${X.join(', ')}<br>Data set B: ${Y.join(', ')}<br><br>Which statement correctly compares the standard deviations of the two data sets?`,...mc(o[sw?0:1],o),
+    expl:`Стандартное отклонение показывает разброс вокруг среднего. Средние одинаковые (${mm}), но в наборе ${sw?'A':'B'} значения гораздо дальше от среднего. Считать ничего не нужно.`};},2);
+add('psda',2,0,'stats',()=>{const b=ri(18,30),hi=ri(0,1),v=[b-2,b-1,b,b+1,b+2],x=hi?b+ri(50,80):Math.max(0,b-ri(15,18)),w=hi?'increase':'decrease',o=[`The mean will ${w} by more than the median will.`,`The median will ${w} by more than the mean will.`,`The mean and the median will ${w} by the same amount.`,`Neither the mean nor the median will change.`];
+  return {q:`A data set consists of the values ${v.join(', ')}. A new value, ${x}, is added to the data set. Which statement best describes the effect on the mean and the median?`,...mc(o[0],o),
+    expl:`${x} — выброс. Среднее чувствительно к выбросам и сдвинется заметно, медиана сдвинется только на полшага к соседнему значению.`};},3);
+add('psda',2,0,'prob',()=>{const r=ri(2,9),b=ri(2,9),g=ri(2,9),T=r+b+g;
+  return {q:`A bag contains ${r} red marbles, ${b} blue marbles, and ${g} green marbles. If one marble is selected at random, what is the probability that it is blue?`,...mc(fr(b,T),[fr(b,r+g),fr(r,T),fr(g,T),fr(T-b,T),fr(1,3),fr(b,T+b)]),
+    expl:`Всего шаров ${T}, синих ${b}. Вероятность: ${b}/${T}${fr(b,T)===`${b}/${T}`?'':' = '+fr(b,T)}. Знаменатель — все шары, а не только остальные.`};},0);
+add('psda',3,0,'prob',()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40),T=a+b+c+d;
+  return {q:`${tbl(['','Bus','Car','Total'],[['Grade 9',a,b,a+b],['Grade 10',c,d,c+d],['Total',a+c,b+d,T]])}The table shows how students get to school. If one of the students is selected at random, what is the probability that the student is NOT a Grade 9 student who takes the bus?`,...FR(T-a,T),d:[[a,T],[c+d,T],[b+d,T],[d,T]],
+    expl:`Девятиклассников на автобусе ${a} из ${T}. Вероятность противоположного события: 1 − ${a}/${T} = ${frS(T-a,T)}.`};},2);
+add('psda',3,1,'infer',()=>{const n=pick([40,50,80,100]),mu=pick([6,8,10,12,15]),k=ri(Math.round(n*.2),Math.round(n*.7));
+  return {q:`In a random sample of ${n} students at a school, ${k} said they walk to school. The school has ${n*mu} students. Based on the sample, what is the best estimate of the number of students at the school who walk to school?`,answer:k*mu,d:[k,(n-k)*mu,n*mu,k*mu-k],
+    expl:`Доля в выборке: ${k}/${n}. Переносим её на всю школу: ${k}/${n} · ${n*mu} = ${k*mu}. Так можно делать, потому что выборка случайная.`};},0);
+add('psda',3,2,'infer',()=>{const ex=ri(0,1),o=['The new study method caused the higher scores for students at this school.','Students who used the new study method tended to have higher scores, but the study does not show that the method caused the higher scores.','The new study method causes higher scores for all students in the country.','No conclusion can be drawn because the sample is too small.'];
+  return {q:ex?`A researcher randomly assigned 200 students at a school to two groups. One group used a new study method and the other did not. The group that used the new method had significantly higher test scores. Which conclusion is best supported?`:`A researcher surveyed 200 randomly selected students at a school and found that those who chose to use a new study method had higher test scores than those who did not. Which conclusion is best supported?`,...mc(o[ex?0:1],o),
+    expl:ex?`Участников распределили по группам случайно — это эксперимент, он позволяет говорить о причине. Но вывод относится только к этой школе.`:`Ученики сами выбирали, пользоваться ли методом, — это наблюдение, а не эксперимент. Оно показывает связь, но не доказывает причину.`};},2);
+add('psda',3,0,'percent',()=>{const p=pick([20,25,40,50,60,75,80]),q=pick([10,20,30,40,50]);
+  return {q:`The number x is ${p}% of the number y, and y is ${q}% of the number z. x is what percent of z?`,...DEC(p*q/100),d:[p+q,Math.abs(p-q),(p+q)/2,p*q/10],
+    expl:`Перемножаем доли: ${p/100} · ${q/100} = ${+(p*q/1e4).toFixed(4)}, то есть ${+(p*q/100).toFixed(2)}%. Проценты «от процентов» не складываются.`};},3);
+add('geo',1,0,'volume',()=>{const l=ri(2,9),w=ri(2,9),h=ri(2,9);
+  return {q:`A rectangular box has a length of ${l} inches, a width of ${w} inches, and a height of ${h} inches. What is the volume of the box, in cubic inches?`,answer:l*w*h,d:[l+w+h,2*(l*w+w*h+l*h),l*w+h,l*w],
+    expl:`Объём = длина · ширина · высота = ${l} · ${w} · ${h} = ${l*w*h}.`};},0);
+add('geo',2,0,'volume',()=>{const r=ri(2,6),h=ri(3,12);
+  return {q:`A right circular cylinder has a volume of ${r*r*h}π cubic centimeters and a base radius of ${r} centimeters. What is the height of the cylinder, in centimeters?`,answer:h,d:[r*h,r*h/2,r*r*h,h+r],
+    expl:`V = πr${sq}h: ${r*r*h}π = π · ${r*r} · h, откуда h = ${r*r*h} / ${r*r} = ${h}.`};},0);
+add('geo',2,0,'area',()=>{const b1=ri(3,9),b2=b1+ri(2,8),h=ri(3,9);
+  return {q:`A trapezoid has bases of length ${b1} and ${b2} and a height of ${h}. What is the area of the trapezoid?`,...DEC((b1+b2)*h/2),d:[(b1+b2)*h,b1*h,b2*h,b1*b2*h/2],
+    expl:`Площадь трапеции = ½ · (b₁ + b₂) · h = ½ · ${b1+b2} · ${h} = ${(b1+b2)*h/2}.`};},2);
+add('geo',2,0,'volume',()=>{const sp=ri(0,1),r=sp?pick([3,6]):pick([3,6,9,2,4]),h=sp?0:(r%3?pick([3,6,9]):ri(2,8)),n=sp?4*r**3/3:r*r*h/3,f=x=>`${x}π`;
+  return {q:sp?`What is the volume of a sphere with a radius of ${r}? (The volume of a sphere is V = 4/3 · πr³.)`:`A right circular cone has a base radius of ${r} and a height of ${h}. What is the volume of the cone? (The volume of a cone is V = ⅓πr${sq}h.)`,...mc(n,sp?[r**3,4*r**3,4*r*r,n/2]:[r*r*h,2*n,r*h,n*3/2],f),
+    expl:sp?`V = 4/3 · π · ${r}³ = 4/3 · ${r**3}π = ${n}π.`:`V = ⅓ · π · ${r*r} · ${h} = ${n}π. Не забудь множитель ⅓ — без него получится объём цилиндра.`};},1);
+add('geo',3,0,'volume',()=>{const k=pick([2,3,4,5]),A=ri(3,12);
+  return {q:`Triangle ABC is similar to triangle DEF, and each side of triangle DEF is ${k} times as long as the corresponding side of triangle ABC. The area of triangle ABC is ${A} square inches. What is the area, in square inches, of triangle DEF?`,answer:A*k*k,d:[A*k,A*k**3,A+k*k,2*A*k],
+    expl:`Стороны больше в ${k} раза, значит площадь больше в ${k}${sq} = ${k*k} раз: ${A} · ${k*k} = ${A*k*k}.`};},2);
+add('geo',2,0,'pyth',()=>{const s=ri(2,9)*2;
+  return {q:`An equilateral triangle has sides of length ${s}. What is the height of the triangle?`,...mc(`${s/2}√3`,[`${s}√3`,`${s/2}√2`,`${s/2}`,`${s}√2`]),
+    expl:`Высота делит равносторонний треугольник на два треугольника 30°-60°-90° со сторонами x, x√3, 2x. Здесь 2x = ${s}, x = ${s/2}, высота x√3 = ${s/2}√3.`};},3);
+add('geo',3,1,'trig',()=>{const [p,q]=pick([[3,5],[4,5],[5,13],[12,13],[8,17],[15,17]]),k=ri(2,5);
+  return {q:`In right triangle ABC, angle C is the right angle and sin A = ${p}/${q}. If AB = ${q*k}, what is the length of BC?`,answer:p*k,d:[Math.round(Math.sqrt(q*q-p*p))*k,p,q*k-p,Math.round(q*q*k/p)],
+    expl:`sin A = BC / AB (противолежащий катет к гипотенузе). ${p}/${q} = BC / ${q*k}, откуда BC = ${p*k}.`};},0);
+add('geo',3,2,'circle',()=>{const c=ri(40,170);
+  return {q:`In a circle, a central angle and an inscribed angle intercept the same arc. The central angle measures ${c}°. What is the measure, in degrees, of the inscribed angle?`,...DEC(c/2),d:[c,2*c,180-c,180-c/2],
+    expl:`Вписанный угол равен половине центрального, опирающегося на ту же дугу: ${c} / 2 = ${c/2}.`};},2);
+add('geo',2,2,'circleeq',()=>{const h=nz(-7,7),k=nz(-7,7),r=ri(2,9),o=(a,b,c)=>`Center ${P2(a,b)}, radius ${c}`;
+  return {q:`A circle in the xy-plane has the equation ${eq(`(x ${sg(-h)})${sq} + (y ${sg(-k)})${sq} = ${r*r}`)}What are the center and the radius of the circle?`,...mc(o(h,k,r),[o(-h,-k,r),o(h,k,r*r),o(-h,-k,r*r)]),
+    expl:`Сравниваем с (x − h)${sq} + (y − k)${sq} = r${sq}: центр ${P2(h,k)} — знаки обратные тем, что в скобках. Справа r${sq} = ${r*r}, значит r = ${r}.`};},0);
+add('geo',3,2,'circleeq',()=>{const k=ri(1,3),x1=ri(-5,3),y1=ri(-5,3);
+  return {q:`In the xy-plane, the points ${P2(x1,y1)} and ${P2(x1+6*k,y1+8*k)} are the endpoints of a diameter of a circle. What is the radius of the circle?`,answer:5*k,d:[10*k,7*k,14*k,25*k*k],
+    expl:`Длина диаметра: √(${6*k}${sq} + ${8*k}${sq}) = √${100*k*k} = ${10*k}. Радиус — половина: ${5*k}.`};},0);
+add('geo',2,0,'similar',()=>{const a=ri(30,80),b=ri(30,80);
+  return {q:`Triangles ABC and DEF are congruent, where A corresponds to D, B corresponds to E, and C corresponds to F. The measure of angle A is ${a}° and the measure of angle B is ${b}°. What is the measure, in degrees, of angle F?`,answer:180-a-b,d:[a,b,a+b,180-a,180-b],
+    expl:`Угол F соответствует углу C. В треугольнике ABC: C = 180 − ${a} − ${b} = ${180-a-b}. У равных треугольников соответственные углы равны.`};},1);
+add('geo',3,2,'trig',()=>{const [d,n,dd]=pick([[30,1,6],[45,1,4],[60,1,3],[120,2,3],[135,3,4],[150,5,6],[210,7,6],[240,4,3],[300,5,3]]);
+  return {q:`An angle measures ${n===1?'':n}π/${dd} radians. What is the measure of the angle in degrees?`,answer:d,d:[n*180,Math.round(180*dd/n),2*d,360-d],
+    expl:`π радиан = 180°, поэтому умножаем на 180/π: ${n===1?'':n+' · '}180 / ${dd} = ${d}.`};},3);
 /*GEN-END*/
 /* ---------- textbook ---------- */
 const S=(inner)=>`<svg class="fig" viewBox="0 0 260 150" role="img">${inner}</svg>`;
@@ -467,6 +841,7 @@ const FIG={
  similar:()=>S(`<polygon class="fs" points="24,120 84,120 44,75"/><polygon class="fa" points="118,125 226,125 154,44"/><text x="48" y="134">a</text><text x="20" y="96">b</text><text x="164" y="141" class="ta">ka</text><text x="116" y="84" class="ta">kb</text>`),
  trig:()=>S(`<polygon class="fs" points="40,125 210,125 210,35"/><polyline class="fl" points="198,125 198,113 210,113"/><text x="70" y="121" class="ta">θ</text><text x="100" y="141">adjacent</text><text x="216" y="84">opposite</text><text x="78" y="72">hypotenuse</text>`),
  sector:()=>S(`<circle class="fs" cx="110" cy="78" r="58"/><line class="fs" x1="110" y1="78" x2="168" y2="78"/><line class="fs" x1="110" y1="78" x2="139" y2="27.8"/><path class="fa" d="M168 78 A58 58 0 0 0 139 27.8"/><circle class="dot" cx="110" cy="78" r="2.5"/><text x="124" y="70" class="ta">θ</text><text x="134" y="92">r</text><text x="164" y="46" class="ta">arc</text>`),
+ ineq:()=>S(AX(110,90)+`<polygon points="30,138 230,30 230,8 30,8" fill="var(--accent)" opacity=".18"/><line class="fa" x1="30" y1="138" x2="230" y2="30"/><text x="60" y="40" class="ta">y ≥ mx + b</text><text x="150" y="128">y &lt; mx + b</text>`),
  circleeq:()=>S(AX(50,118)+`<circle class="fs" cx="150" cy="66" r="42"/><line class="fa" x1="150" y1="66" x2="192" y2="66"/><circle class="dot" cx="150" cy="66" r="3"/><text x="126" y="60">(h, k)</text><text x="166" y="80" class="ta">r</text>`)
 };
 const R=(f,d,ex,fig)=>({f,d,ex,fig});
@@ -492,13 +867,15 @@ const BOOK=[
  {id:'ineq',name:'Linear inequalities',ru:'Неравенства',tier:0,rules:[
   R('Multiply or divide by a negative → flip the sign','Неравенства решаются как уравнения, но при умножении или делении на отрицательное число знак переворачивается.','−2x > 6 → x < −3'),
   R('at least ≥ · at most ≤ · more than > · fewer than <','Слова-подсказки. At least, no less than — «не меньше» (≥). At most, no more than — «не больше» (≤).','«at least 15 tickets» → t ≥ 15'),
-  R('Maximum whole number','Если спрашивают, сколько целых предметов можно купить, реши неравенство и округли вниз.','12 + 5t ≤ 60 → t ≤ 9.6 → 9 tickets')]}]},
+  R('Maximum whole number','Если спрашивают, сколько целых предметов можно купить, реши неравенство и округли вниз.','12 + 5t ≤ 60 → t ≤ 9.6 → 9 tickets'),
+  R('y > mx + b: shade above the line','На графике неравенство — закрашенная область. y > … — закрашено выше прямой, y < … — ниже. Пунктирная граница — строгое неравенство (&lt; или &gt;), сплошная — нестрогое (≤ или ≥). Решение системы неравенств — точка, которая подходит всем неравенствам сразу.','y ≥ 2x − 1: сплошная линия, закрашено сверху','ineq')]}]},
 {id:'adv',name:'Advanced Math',ru:'Продвинутая математика',topics:[
  {id:'poly',name:'Equivalent expressions',ru:'Преобразование выражений',tier:0,rules:[
   R('(a + b)(c + d) = ac + ad + bc + bd','FOIL: First, Outer, Inner, Last — каждое слагаемое первой скобки умножаем на каждое из второй.','(x + 3)(x − 5) = x² − 2x − 15'),
   R('(a ± b)² = a² ± 2ab + b²','Квадрат суммы и разности. Средний член 2ab забывают чаще всего.','(2x + 3)² = 4x² + 12x + 9'),
   R('a² − b² = (a − b)(a + b)','Difference of squares — разность квадратов.','x² − 49 = (x − 7)(x + 7)'),
-  R('x² + bx + c = (x + p)(x + q)','Factoring: ищи два числа, которые в сумме дают b, а в произведении c.','x² + 7x + 12 = (x + 3)(x + 4), потому что 3 + 4 = 7 и 3 · 4 = 12')]},
+  R('x² + bx + c = (x + p)(x + q)','Factoring: ищи два числа, которые в сумме дают b, а в произведении c.','x² + 7x + 12 = (x + 3)(x + 4), потому что 3 + 4 = 7 и 3 · 4 = 12'),
+  R('Combine like terms','Складывать можно только подобные слагаемые: x² с x², x с x, числа с числами. Минус перед скобкой меняет знак у каждого слагаемого внутри.','(5x² + 2x − 1) − (2x² − 3x + 4) = 3x² + 5x − 5')]},
  {id:'exp',name:'Exponents and radicals',ru:'Степени и корни',tier:0,rules:[
   R('x<sup>a</sup> · x<sup>b</sup> = x<sup>a+b</sup>','При умножении степеней с одинаковым основанием показатели складываются.','x³ · x⁴ = x⁷'),
   R('(x<sup>a</sup>)<sup>b</sup> = x<sup>ab</sup>','При возведении степени в степень показатели перемножаются.','(x³)² = x⁶'),
@@ -555,6 +932,10 @@ const BOOK=[
   R('P = favorable outcomes / total outcomes','Вероятность — доля подходящих исходов среди всех.','3 красных шара из 12 → P = 3/12 = 1/4'),
   R('Conditional probability: use only the given group','Слова «given that», «of those who», «if a student from Grade 10 is selected» сужают знаменатель: берём не всех, а только названную группу.','Из 40 десятиклассников 16 ездят на автобусе → 16/40, а не 16 от всех учеников'),
   R('P(not A) = 1 − P(A)','Вероятность противоположного события.','P(rain) = 0.3 → P(no rain) = 0.7')]},
+ {id:'charts',name:'Reading graphs and tables',ru:'Чтение графиков и таблиц',tier:0,rules:[
+  R('Bar graphs and tables','Сначала прочитай подписи осей и шаг шкалы, потом значения. Вопросы обычно в два шага: найти два значения и сравнить их или сложить. Долю считаем как часть, делённую на сумму всех столбцов.','Столбцы 20, 35, 45 → доля второго 35/100 = 7/20'),
+  R('Line graphs','Крутой подъём — быстрый рост, спад — убывание, горизонтальный участок — без изменений. «Greatest increase» — самый крутой отрезок вверх.','2019: 40, 2020: 70 → рост на 30'),
+  R('Average rate of change = (y₂ − y₁) / (x₂ − x₁)','Средняя скорость изменения между двумя точками — это наклон отрезка, который их соединяет. Что было между ними, не важно.','С 2016 (20) по 2019 (50): 30 / 3 = 10 в год')]},
  {id:'infer',name:'Inference and study design',ru:'Выводы по выборке',tier:1,rules:[
   R('Random sample → generalize to that population','Результат случайной выборки можно переносить только на ту группу, из которой выбирали.','Опросили случайных учеников одной школы → вывод только про эту школу'),
   R('estimate ± margin of error','Только SAT. Погрешность задаёт интервал правдоподобных значений. Больше выборка — меньше погрешность.','52% ± 4% → от 48% до 56%'),
@@ -629,17 +1010,18 @@ function qHTML(p,a,locked){
   let h=`<div class="q">${p.q}</div>`;
   if(p.choices)h+=`<div class="opts">${p.choices.map((c,i)=>{let cls='opt';if(locked){if(i===p.answer)cls+=' ok';else if(i===a)cls+=' no';}
     return `<button class="${cls}" data-i="${i}" aria-pressed="${!locked&&a===i}" ${locked?'disabled':''}><i>${'ABCD'[i]}</i><span>${c}</span></button>`;}).join('')}</div>`;
-  else h+=`<label class="grid-in"><span>Впиши ответ числом</span><input class="gi" inputmode="text" autocomplete="off" placeholder="Например, 12" value="${a==null?'':String(a).replace(/"/g,'')}" ${locked?'disabled':''}></label>`;
+  else h+=`<label class="grid-in"><span>Впиши ответ: целое, дробь или десятичное</span><input class="gi" inputmode="text" autocomplete="off" placeholder="Например, 12, 3/4 или 0.75" value="${a==null?'':String(a).replace(/"/g,'')}" ${locked?'disabled':''}></label>`;
   return h;
 }
 const answered=(p,a)=>p.choices?a!=null:(a!=null&&String(a).trim()!=='');
 function isRight(p,a){
   if(!answered(p,a))return false;
   if(p.choices)return a===p.answer;
-  const v=Number(String(a).trim().replace('−','-').replace(',','.'));
-  return Number.isFinite(v)&&Math.abs(v-p.answer)<1e-9;
+  const v=parseNum(a);
+  return Number.isFinite(v)&&Math.abs(v-p.answer)<=(Number.isInteger(p.answer)?1e-9:0.0011);
 }
-const rightText=p=>p.choices?'ABCD'[p.answer]+') '+p.choices[p.answer]:m(p.answer);
+function parseNum(a){const s=String(a).trim().replace(/−/g,'-').replace(/,/g,'.').replace(/\s/g,'');const f=s.match(/^(-?\d*\.?\d+)\/(\d*\.?\d+)$/);if(f)return +f[2]?+f[1]/+f[2]:NaN;return s===''?NaN:Number(s);}
+const rightText=p=>p.choices?'ABCD'[p.answer]+') '+p.choices[p.answer]:(p.ansText||m(p.answer));
 const bookLink=p=>`<button class="btn ghost sm" data-topic="${p.topic}" data-rule="${p.rule}">Открыть правило в учебнике</button>`;
 
 /* ---------- views ---------- */
