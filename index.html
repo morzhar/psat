@@ -1,0 +1,391 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PSAT 10 Math Тренажёр</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Onest:wght@400;500;600;700&family=Spectral:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+/* Layout idea: one phone-width column — score strip, filters, exam-paper question card, section progress. */
+:root{
+  --bg:#eef1f6; --surface:#ffffff; --ink:#141a2a; --muted:#5f6a82; --line:#d6dbe6;
+  --accent:#2747d6; --accent-ink:#ffffff; --accent-soft:#e4e9fb;
+  --good:#1c8a55; --good-soft:#e0f3e9; --bad:#c93a3a; --bad-soft:#fae6e6;
+  --font-ui:"Onest",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  --font-q:"Spectral",Georgia,"Times New Roman",serif;
+  color-scheme:light;
+}
+@media (prefers-color-scheme:dark){
+  :root:not([data-theme="light"]){
+    --bg:#0f1320; --surface:#181e30; --ink:#e9ecf5; --muted:#98a2bb; --line:#2a3350;
+    --accent:#7f96ff; --accent-ink:#0f1320; --accent-soft:#222b4d;
+    --good:#4cc38a; --good-soft:#163527; --bad:#f07171; --bad-soft:#3b1d22;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0f1320; --surface:#181e30; --ink:#e9ecf5; --muted:#98a2bb; --line:#2a3350;
+  --accent:#7f96ff; --accent-ink:#0f1320; --accent-soft:#222b4d;
+  --good:#4cc38a; --good-soft:#163527; --bad:#f07171; --bad-soft:#3b1d22;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--ink);font-family:var(--font-ui);font-size:15px;line-height:1.45}
+.app{max-width:480px;margin:0 auto;padding:18px 16px 32px;display:flex;flex-direction:column;gap:14px}
+header{display:flex;justify-content:space-between;align-items:baseline;gap:12px}
+h1{font-size:20px;font-weight:700;margin:0;letter-spacing:-.01em}
+header span{color:var(--muted);font-size:13px}
+.strip{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}
+.tile{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+.tile b{display:block;font-size:20px;font-weight:700;font-variant-numeric:tabular-nums}
+.tile small{color:var(--muted);font-size:12px}
+.group{display:flex;flex-direction:column;gap:6px}
+.label{font-size:12px;color:var(--muted);font-weight:600;text-transform:uppercase;letter-spacing:.05em}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.chip{font:inherit;font-size:13.5px;font-weight:500;padding:7px 12px;border-radius:999px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.chip[aria-pressed="true"]{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.seg{display:grid;grid-template-columns:repeat(4,1fr);background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:3px;gap:3px}
+.seg button{font:inherit;font-size:13.5px;font-weight:500;padding:7px 4px;border:0;border-radius:7px;background:transparent;color:var(--muted);cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent-soft);color:var(--accent);font-weight:600}
+button:focus-visible,input:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:flex;flex-direction:column;gap:14px}
+.meta{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12.5px;color:var(--muted)}
+.meta .tags{display:flex;gap:6px;flex-wrap:wrap}
+.tag{padding:2px 8px;border-radius:6px;background:var(--accent-soft);color:var(--accent);font-weight:600}
+.tag.lv{background:transparent;border:1px solid var(--line);color:var(--muted)}
+.timer{font-variant-numeric:tabular-nums;font-weight:600}
+.timer.over{color:var(--bad)}
+.q{font-family:var(--font-q);font-size:18.5px;line-height:1.5;text-wrap:pretty}
+.q .eq{display:block;text-align:center;margin:8px 0;font-size:19px}
+.q table{border-collapse:collapse;margin:10px auto;font-family:var(--font-ui);font-size:14px;font-variant-numeric:tabular-nums}
+.q th,.q td{border:1px solid var(--line);padding:5px 10px;text-align:center}
+.q th{font-weight:600;color:var(--muted)}
+.tw{overflow-x:auto}
+.opts{display:flex;flex-direction:column;gap:8px}
+.opt{display:flex;align-items:center;gap:12px;width:100%;text-align:left;font-family:var(--font-q);font-size:17.5px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--surface);color:var(--ink);cursor:pointer}
+.opt i{font-family:var(--font-ui);font-style:normal;font-size:12.5px;font-weight:700;width:24px;height:24px;flex:none;border-radius:50%;border:1px solid var(--line);display:grid;place-items:center;color:var(--muted)}
+.opt[aria-pressed="true"]{border-color:var(--accent);background:var(--accent-soft)}
+.opt[aria-pressed="true"] i{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt.ok{border-color:var(--good);background:var(--good-soft)}
+.opt.ok i{background:var(--good);border-color:var(--good);color:var(--surface)}
+.opt.no{border-color:var(--bad);background:var(--bad-soft)}
+.opt.no i{background:var(--bad);border-color:var(--bad);color:var(--surface)}
+.opt:disabled{cursor:default;opacity:1}
+.grid-in{display:flex;flex-direction:column;gap:6px}
+.grid-in input{font-family:var(--font-q);font-size:20px;padding:10px 12px;border-radius:10px;border:1px solid var(--line);background:var(--bg);color:var(--ink);width:100%}
+.grid-in label{font-size:12.5px;color:var(--muted)}
+.btn{font:inherit;font-weight:600;font-size:15px;padding:12px;border-radius:12px;border:0;background:var(--accent);color:var(--accent-ink);cursor:pointer;width:100%}
+.btn:disabled{opacity:.45;cursor:default}
+.fb{border-radius:12px;padding:12px;font-size:14.5px;display:flex;flex-direction:column;gap:6px}
+.fb.good{background:var(--good-soft)} .fb.bad{background:var(--bad-soft)}
+.fb b{font-size:15px} .fb.good b{color:var(--good)} .fb.bad b{color:var(--bad)}
+.fb p{margin:0}
+.rows{display:flex;flex-direction:column;gap:10px}
+.row{display:grid;grid-template-columns:1fr auto;gap:4px 10px;font-size:13.5px}
+.row span:last-of-type{color:var(--muted);font-variant-numeric:tabular-nums}
+.bar{grid-column:1/-1;height:6px;border-radius:3px;background:var(--line);overflow:hidden}
+.bar div{height:100%;background:var(--accent);border-radius:3px}
+.link{font:inherit;font-size:13px;color:var(--muted);background:none;border:0;padding:0;text-decoration:underline;cursor:pointer;align-self:flex-start}
+[hidden]{display:none!important}
+</style>
+</head>
+<body>
+<div class="app">
+  <header><h1>PSAT 10 Math</h1><span>тренажёр задач</span></header>
+
+  <div class="strip">
+    <div class="tile"><b id="sTotal">0</b><small>решено</small></div>
+    <div class="tile"><b id="sAcc">—</b><small>точность</small></div>
+    <div class="tile"><b id="sStreak">0</b><small>серия подряд</small></div>
+  </div>
+
+  <div class="group">
+    <div class="label">Секция</div>
+    <div class="chips" id="secs"></div>
+  </div>
+  <div class="group">
+    <div class="label">Сложность</div>
+    <div class="seg" id="lvls"></div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="meta"><div class="tags"><span class="tag" id="tSec"></span><span class="tag lv" id="tLvl"></span></div><span class="timer" id="timer" title="На тесте в среднем 1:35 на вопрос">0:00</span></div>
+    <div class="q" id="q"></div>
+    <div class="opts" id="opts"></div>
+    <div class="grid-in" id="gridWrap" hidden>
+      <label for="gridInput">Впиши ответ числом</label>
+      <input id="gridInput" inputmode="text" autocomplete="off" placeholder="Например, 12">
+    </div>
+    <div class="fb" id="fb" hidden></div>
+    <button class="btn" id="go" disabled>Проверить</button>
+  </div>
+
+  <div class="card">
+    <div class="label">Точность по секциям</div>
+    <div class="rows" id="rows"></div>
+    <button class="link" id="reset">Сбросить статистику</button>
+  </div>
+</div>
+
+<script>
+/*GEN-START*/
+const ri=(a,b)=>Math.floor(Math.random()*(b-a+1))+a;
+const pick=a=>a[ri(0,a.length-1)];
+const shuffle=a=>{a=a.slice();for(let i=a.length-1;i>0;i--){const j=ri(0,i);[a[i],a[j]]=[a[j],a[i]];}return a;};
+const nz=(a,b)=>{let v;do{v=ri(a,b);}while(v===0);return v;};
+const gcd=(a,b)=>b?gcd(b,a%b):Math.abs(a);
+const fr=(n,d)=>{const g=gcd(n,d);n/=g;d/=g;return d===1?`${n}`:`${n}/${d}`;};
+const m=n=>n<0?`−${-n}`:`${n}`;                 // number with a real minus
+const sg=n=>n<0?`− ${-n}`:`+ ${n}`;            // signed term
+const eq=s=>`<span class="eq">${s}</span>`;
+const sq='<sup>2</sup>';
+function poly(a,b,c){
+  let s=(a===1?'':a===-1?'−':m(a))+'x'+sq;
+  if(b)s+=` ${b<0?'−':'+'} ${Math.abs(b)===1?'':Math.abs(b)}x`;
+  if(c)s+=` ${sg(c)}`;
+  return s;
+}
+function mc(correct,cands,fmt){
+  fmt=fmt||(x=>typeof x==='number'?m(x):x);
+  const c=String(fmt(correct)),set=[];
+  for(const x of cands){const s=String(fmt(x));if(s!==c&&!set.includes(s))set.push(s);}
+  let k=1;
+  while(set.length<3&&typeof correct==='number'&&k<50){const s=String(fmt(correct+k));if(s!==c&&!set.includes(s))set.push(s);k=k>0?-k:-k+1;}
+  const ch=shuffle([c,...shuffle(set).slice(0,3)]);
+  return {choices:ch,answer:ch.indexOf(c)};
+}
+const money=v=>'$'+(Number.isInteger(v)?v:v.toFixed(2));
+
+const G={alg:{1:[],2:[],3:[]},adv:{1:[],2:[],3:[]},psda:{1:[],2:[],3:[]},geo:{1:[],2:[],3:[]}};
+
+/* ---------- Algebra ---------- */
+G.alg[1].push(()=>{const a=ri(2,9),x=ri(2,12),b=ri(1,20),c=a*x+b;
+  return {q:`If ${a}x + ${b} = ${c}, what is the value of x?`,...mc(x,[x+1,x-1,c-b,x+2]),
+    expl:`Вычитаем ${b} из обеих частей: ${a}x = ${c-b}. Делим на ${a}: x = ${x}.`};});
+G.alg[1].push(()=>{const fee=ri(2,9)*5;let rate;do{rate=ri(2,9)*5;}while(rate===fee);
+  const ctx=pick([['A gym charges a one-time sign-up fee of','per month','months'],['A bike shop charges a flat rental fee of','per hour','hours'],['A plumber charges a service fee of','per hour of work','hours']]);
+  return {q:`${ctx[0]} $${fee} plus $${rate} ${ctx[1]}. Which equation gives the total cost C, in dollars, for m ${ctx[2]}?`,
+    ...mc(`C = ${rate}m + ${fee}`,[`C = ${fee}m + ${rate}`,`C = ${fee+rate}m`,`C = ${rate}(m + ${fee})`]),
+    expl:`Разовая плата $${fee} — это константа, а $${rate} умножается на количество m. Получаем C = ${rate}m + ${fee}.`};});
+G.alg[1].push(()=>{const x1=ri(-5,3),y1=ri(-6,6),dx=ri(1,4),k=nz(-4,4),x2=x1+dx,y2=y1+k*dx;
+  return {q:`A line in the xy-plane passes through the points (${m(x1)}, ${m(y1)}) and (${m(x2)}, ${m(y2)}). What is the slope of the line?`,answer:k,
+    expl:`Наклон = (y₂ − y₁)/(x₂ − x₁) = (${m(y2)} − (${m(y1)}))/(${m(x2)} − (${m(x1)})) = ${m(k*dx)}/${dx} = ${m(k)}.`};});
+
+G.alg[2].push(()=>{const x=ri(1,9),y=ri(1,9),a=ri(2,5),b=ri(2,5);
+  return {q:`${eq(`${a}x + y = ${a*x+y}`)}${eq(`x + ${b}y = ${x+b*y}`)}The solution to the given system of equations is (x, y). What is the value of x + y?`,answer:x+y,
+    expl:`Из первого уравнения y = ${a*x+y} − ${a}x. Подставляем во второе и получаем x = ${x}, затем y = ${y}. Сумма: ${x+y}.`};});
+G.alg[2].push(()=>{const a=ri(2,6),x=ri(2,9),b=ri(1,15),k=pick([2,3]),n=ri(1,9),c=a*x+b,ans=k*a*x-n;
+  return {q:`If ${a}x + ${b} = ${c}, what is the value of ${k*a}x − ${n}?`,...mc(ans,[a*x-n,x,k*a*x+n,k*c-n]),
+    expl:`Из уравнения ${a}x = ${c-b}. Тогда ${k*a}x = ${k} · ${c-b} = ${k*(c-b)}, и ${k*a}x − ${n} = ${ans}. Находить сам x не обязательно.`};});
+G.alg[2].push(()=>{const p=ri(3,12),f=ri(5,20),n=ri(4,15),r=ri(1,p-1),B=f+p*n+r;const who=pick(['Mia','Daniel','Aisha','Leo']);
+  return {q:`${who} has $${B} to spend at a fair. Admission costs $${f}, and each ride ticket costs $${p}. What is the maximum number of ride tickets ${who} can buy?`,answer:n,
+    expl:`Неравенство: ${f} + ${p}t ≤ ${B}, то есть ${p}t ≤ ${B-f}, t ≤ ${((B-f)/p).toFixed(2)}. Билетов целое число, поэтому максимум ${n}.`};});
+G.alg[2].push(()=>{const k=nz(-3,3),b=ri(-8,8),x1=ri(1,4),x2=x1+ri(1,3);
+  return {q:`A line passes through the points (${x1}, ${m(k*x1+b)}) and (${x2}, ${m(k*x2+b)}) and crosses the y-axis at the point (0, b). What is the value of b?`,answer:b,
+    expl:`Наклон = (${m(k*x2+b)} − (${m(k*x1+b)}))/(${x2} − ${x1}) = ${m(k)}. Подставляем точку: ${m(k*x1+b)} = ${m(k)} · ${x1} + b, откуда b = ${m(b)}.`};});
+
+G.alg[3].push(()=>{const a=ri(2,5),b=ri(2,6),k=pick([2,3,4]),c=ri(1,9),d=k*c+ri(1,5);
+  return {q:`${eq(`${a}x + ${b}y = ${c}`)}${eq(`${k*a}x + py = ${d}`)}In the given system of equations, p is a constant. If the system has no solution, what is the value of p?`,answer:k*b,
+    expl:`Решений нет, когда прямые параллельны: коэффициенты при x и y пропорциональны, а свободные члены — нет. ${k*a}/${a} = ${k}, значит p = ${k} · ${b} = ${k*b} (при этом ${d} ≠ ${k} · ${c}).`};});
+G.alg[3].push(()=>{const a=ri(2,6),p=ri(2,7),q=ri(1,9);
+  return {q:`${eq(`k(x + ${p}) − ${q} = ${a}x + c`)}In the given equation, k and c are constants. If the equation has infinitely many solutions, what is the value of c?`,answer:a*p-q,
+    expl:`Бесконечно много решений — обе части совпадают тождественно. Слева kx + ${p}k − ${q}. Значит k = ${a}, а c = ${p} · ${a} − ${q} = ${a*p-q}.`};});
+G.alg[3].push(()=>{const A=ri(8,15),C=A-ri(2,5),na=ri(20,60),nc=ri(20,60),n=na+nc,R=A*na+C*nc;
+  return {q:`A theater sold ${n} tickets for a show. Adult tickets cost $${A} each and student tickets cost $${C} each. The total revenue from ticket sales was $${R}. How many adult tickets were sold?`,answer:na,
+    expl:`Система: a + s = ${n} и ${A}a + ${C}s = ${R}. Подставляем s = ${n} − a: ${A}a + ${C}(${n} − a) = ${R}, откуда ${A-C}a = ${R-C*n}, a = ${na}.`};});
+
+/* ---------- Advanced Math ---------- */
+G.adv[1].push(()=>{const a=ri(1,3),b=nz(-5,5),c=ri(-6,6),k=nz(-3,4),ans=a*k*k+b*k+c;
+  return {q:`The function f is defined by ${eq(`f(x) = ${poly(a,b,c)}`)}What is the value of f(${m(k)})?`,...mc(ans,[a*k*k-b*k+c,a*k*2+b*k+c,-a*k*k+b*k+c,ans+ri(1,3)]),
+    expl:`Подставляем x = ${m(k)}: ${a} · ${k*k} ${sg(b*k)} ${c?sg(c):''} = ${m(ans)}. Следи за знаком при возведении в квадрат.`};});
+G.adv[1].push(()=>{const p=nz(-7,7),q=nz(-7,7);
+  return {q:`Which expression is equivalent to (x ${sg(p)})(x ${sg(q)})?`,
+    ...mc(poly(1,p+q,p*q),[poly(1,p*q,p+q),poly(1,p-q,p*q),poly(1,p+q,-p*q),poly(1,-(p+q),p*q),poly(1,p+q,p+q)]),
+    expl:`Раскрываем скобки: x · x + (${m(q)})x + (${m(p)})x + (${m(p)})(${m(q)}) = ${poly(1,p+q,p*q)}.`};});
+G.adv[1].push(()=>{const a=ri(2,6),b=ri(2,6),t=ri(0,1);
+  return t?{q:`If x<sup>${a}</sup> · x<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a+b,expl:`При умножении степеней с одинаковым основанием показатели складываются: ${a} + ${b} = ${a+b}.`}
+          :{q:`If (x<sup>${a}</sup>)<sup>${b}</sup> = x<sup>n</sup> for all values of x, what is the value of n?`,answer:a*b,expl:`При возведении степени в степень показатели перемножаются: ${a} · ${b} = ${a*b}.`};});
+
+G.adv[2].push(()=>{const r1=ri(1,9),r2=-ri(1,9);
+  return {q:`What is the positive solution to the equation ${eq(`${poly(1,-(r1+r2),r1*r2)} = 0`)}`,answer:r1,
+    expl:`Раскладываем на множители: (x − ${r1})(x + ${-r2}) = 0. Корни: ${r1} и ${m(r2)}. Положительный — ${r1}.`};});
+G.adv[2].push(()=>{let r1,r2;do{r1=nz(-8,8);r2=nz(-8,8);}while(r1===r2);const s=r1+r2;
+  return {q:`What is the sum of the solutions to the equation ${eq(`${poly(1,-s,r1*r2)} = 0`)}`,...mc(s,[-s,r1*r2,-r1*r2,r1-r2]),
+    expl:`По теореме Виета сумма корней x${sq} + bx + c = 0 равна −b. Здесь b = ${m(-s)}, сумма = ${m(s)} (корни ${m(r1)} и ${m(r2)}).`};});
+G.adv[2].push(()=>{const a=pick([50,100,200,300,500]),r=pick([2,3]),t=ri(2,4),ans=a*r**t;
+  return {q:`The number of bacteria in a culture is modeled by ${eq(`P(t) = ${a}(${r})<sup>t</sup>`)}where t is the number of hours since the start of the experiment. According to the model, how many bacteria are there after ${t} hours?`,
+    ...mc(ans,[a*r*t,a*r**(t-1),a*r**(t+1),(a*r)*(t+1)],x=>x.toLocaleString('en-US')),
+    expl:`Подставляем t = ${t}: ${a} · ${r}^${t} = ${a} · ${r**t} = ${ans}. Сначала степень, потом умножение.`};});
+G.adv[2].push(()=>{const b=ri(3,9),a=ri(1,20);
+  return {q:`What value of x satisfies the equation ${eq(`√(x + ${a}) = ${b}`)}`,answer:b*b-a,
+    expl:`Возводим обе части в квадрат: x + ${a} = ${b*b}, откуда x = ${m(b*b-a)}.`};});
+
+G.adv[3].push(()=>{const h=nz(-6,6),k=ri(-9,9);
+  return {q:`The function f is defined by ${eq(`f(x) = ${poly(1,-2*h,h*h+k)}`)}What is the minimum value of f(x)?`,answer:k,
+    expl:`Выделяем полный квадрат: f(x) = (x ${sg(-h)})${sq} ${k?sg(k):''}. Квадрат не меньше нуля, поэтому минимум равен ${m(k)} (при x = ${m(h)}).`};});
+G.adv[3].push(()=>{const n=ri(2,9);
+  return {q:`${eq(`x${sq} − kx + ${n*n} = 0`)}In the given equation, k is a positive constant. If the equation has exactly one real solution, what is the value of k?`,answer:2*n,
+    expl:`Один корень — дискриминант равен нулю: k${sq} − 4 · ${n*n} = 0, k${sq} = ${4*n*n}, k = ${2*n} (берём положительное).`};});
+G.adv[3].push(()=>{const a=ri(2,8);let k;do{k=ri(a+3,22);}while(k===2*a);
+  return {q:`${eq(`(x${sq} − ${a*a}) / (x − ${a}) = ${k}`)}If x ≠ ${a}, what value of x satisfies the given equation?`,answer:k-a,
+    expl:`Числитель — разность квадратов: (x − ${a})(x + ${a}). Сокращаем на (x − ${a}): x + ${a} = ${k}, x = ${k-a}.`};});
+G.adv[3].push(()=>{const a=ri(2,6),b=pick([2,3]),f2=a*b*b,ans=a*b**3;
+  return {q:`The function f is defined by f(x) = a · b<sup>x</sup>, where a and b are positive constants. If f(0) = ${a} and f(2) = ${f2}, what is the value of f(3)?`,
+    ...mc(ans,[f2+(f2-a)/2,a*b**4,a*b*3,f2+a,f2*3]),
+    expl:`f(0) = a = ${a}. f(2) = ${a}b${sq} = ${f2}, значит b${sq} = ${b*b}, b = ${b}. Тогда f(3) = ${a} · ${b**3} = ${ans}. Рост не линейный, а в ${b} раза за шаг.`};});
+
+/* ---------- Problem-Solving and Data Analysis ---------- */
+G.psda[1].push(()=>{const price=pick([40,60,80,120,160,200,240]),p=pick([10,15,20,25,30,40]),ans=price*(100-p)/100;
+  const item=pick(['jacket','backpack','pair of headphones','calculator']);
+  return {q:`A ${item} originally priced at $${price} is on sale for ${p}% off. What is the sale price?`,...mc(ans,[price-p,price*p/100,price*(100+p)/100,ans+5],money),
+    expl:`Скидка: ${p}% от ${price} = ${money(price*p/100)}. Цена со скидкой: ${price} − ${price*p/100} = ${money(ans)}.`};});
+G.psda[1].push(()=>{const mean=ri(10,40);const d=[ri(-8,8),ri(-8,8),ri(-8,8),ri(-8,8)];d.push(-d.reduce((s,v)=>s+v,0));const v=shuffle(d.map(x=>mean+x));
+  return {q:`What is the mean of the data set below?${eq(v.join(', '))}`,answer:mean,
+    expl:`Сумма: ${v.join(' + ')} = ${mean*5}. Делим на 5: ${mean}.`};});
+G.psda[1].push(()=>{const s=pick([40,45,50,55,60,65]),h=ri(2,4),t=ri(5,8);
+  return {q:`A train travels ${s*h} miles in ${h} hours at a constant speed. At this rate, how many miles will the train travel in ${t} hours?`,...mc(s*t,[s*h+t,s*(t-1),s*(t+1),s*h*2]),
+    expl:`Скорость: ${s*h} / ${h} = ${s} миль в час. За ${t} часов: ${s} · ${t} = ${s*t}.`};});
+
+G.psda[2].push(()=>{const a=pick([20,40,60,80,120,200,240,300]),p=pick([5,10,15,20,25,30,40,60]),b=a+a*p/100;
+  return {q:`The price of a monthly bus pass increased from $${a} to $${b}. What is the percent increase in the price?`,...mc(p,[b-a,Math.round((b-a)/b*100),p+5,p+10],x=>x+'%'),
+    expl:`Рост: ${b} − ${a} = ${b-a}. Делим на исходную цену: ${b-a} / ${a} = ${p/100}, то есть ${p}%. Делить нужно на старое значение, не на новое.`};});
+G.psda[2].push(()=>{const v=Array.from({length:7},()=>ri(10,40)),s=v.slice().sort((x,y)=>x-y);
+  return {q:`The number of points a player scored in each of 7 games is shown.${eq(v.join(', '))}What is the median number of points?`,answer:s[3],
+    expl:`Упорядочиваем: ${s.join(', ')}. Медиана — четвёртое значение из семи: ${s[3]}.`};});
+G.psda[2].push(()=>{const a=ri(8,40),b=ri(8,40),c=ri(8,40),d=ri(8,40),T=a+b+c+d;
+  return {q:`<div class="tw"><table><tr><th></th><th>Bus</th><th>Car</th><th>Total</th></tr><tr><th>Grade 9</th><td>${a}</td><td>${b}</td><td>${a+b}</td></tr><tr><th>Grade 10</th><td>${c}</td><td>${d}</td><td>${c+d}</td></tr><tr><th>Total</th><td>${a+c}</td><td>${b+d}</td><td>${T}</td></tr></table></div>The table shows how students get to school. If a Grade 10 student is selected at random, what is the probability that the student takes the bus?`,
+    ...mc(fr(c,c+d),[fr(c,a+c),fr(c,T),fr(d,c+d),fr(c+d,T),fr(a,a+b),fr(a+c,T)]),
+    expl:`Выбираем только из десятиклассников — их ${c+d}. На автобусе из них ${c}. Вероятность: ${c}/${c+d} = ${fr(c,c+d)}. Знаменатель — не все ${T} учеников.`};});
+G.psda[2].push(()=>{let a,b;do{a=ri(2,5);b=ri(2,7);}while(gcd(a,b)!==1);const k=ri(4,15);
+  return {q:`The ratio of red marbles to blue marbles in a bag is ${a} to ${b}. If there are ${(a+b)*k} marbles in the bag and all are red or blue, how many red marbles are there?`,answer:a*k,
+    expl:`Всего частей: ${a} + ${b} = ${a+b}. Одна часть: ${(a+b)*k} / ${a+b} = ${k}. Красных: ${a} · ${k} = ${a*k}.`};});
+
+G.psda[3].push(()=>{const p=pick([10,20,25,30,40,50]),q=pick([10,20,25,30,40,50]),ans=100+p-q-p*q/100,f=x=>(+x.toFixed(1))+'%';
+  return {q:`The price of a stock increased by ${p}% and then decreased by ${q}%. The final price is what percent of the original price?`,...mc(ans,[100+p-q,100+p-q+p*q/100,100-p*q/100,100-q],f),
+    expl:`Множители: ${1+p/100} · ${1-q/100} = ${+(ans/100).toFixed(4)}, то есть ${f(ans)} от исходной. Проценты нельзя просто сложить и вычесть: второй процент берётся уже от новой цены.`};});
+G.psda[3].push(()=>{const n=ri(4,8),mean=ri(10,30),dl=nz(-3,4),x=(n+1)*(mean+dl)-n*mean;
+  return {q:`The mean of ${n} numbers is ${mean}. After one more number is added, the mean of the ${n+1} numbers is ${mean+dl}. What number was added?`,answer:x,
+    expl:`Сумма была ${n} · ${mean} = ${n*mean}, стала ${n+1} · ${mean+dl} = ${(n+1)*(mean+dl)}. Разница: ${m(x)}.`};});
+G.psda[3].push(()=>{const [a,b]=pick([[1,2],[2,3],[1,3],[3,2],[1,4],[2,1]]),g=ri(4,8),t=nz(-3,3),m1=ri(65,82),m2=m1+(a+b)*t,ans=m1+b*t;
+  return {q:`Class A has ${a*g} students with a mean test score of ${m1}. Class B has ${b*g} students with a mean test score of ${m2}. What is the mean test score of all the students in both classes combined?`,...mc(ans,[(m1+m2)/2,m1+a*t,m2,m1]),
+    expl:`Взвешенное среднее: (${a*g} · ${m1} + ${b*g} · ${m2}) / ${(a+b)*g} = ${ans}. Просто усреднить ${m1} и ${m2} нельзя — классы разного размера.`};});
+
+/* ---------- Geometry and Trigonometry ---------- */
+G.geo[1].push(()=>{const b=ri(2,7)*2,h=ri(3,12);
+  return {q:`A triangle has a base of ${b} inches and a height of ${h} inches. What is the area of the triangle, in square inches?`,...mc(b*h/2,[b*h,b+h,b*h/2+b,2*b*h]),
+    expl:`Площадь треугольника = ½ · основание · высота = ½ · ${b} · ${h} = ${b*h/2}.`};});
+G.geo[1].push(()=>{const a=ri(25,80),b=ri(25,80);
+  return {q:`In a triangle, two of the angles measure ${a}° and ${b}°. What is the measure, in degrees, of the third angle?`,answer:180-a-b,
+    expl:`Сумма углов треугольника 180°: 180 − ${a} − ${b} = ${180-a-b}.`};});
+G.geo[1].push(()=>{const r=ri(3,9),t=ri(0,1);
+  return t?{q:`A circle has a radius of ${r} centimeters. What is the area of the circle, in square centimeters?`,...mc(`${r*r}π`,[`${2*r}π`,`${r}π`,`${2*r*r}π`,`${4*r*r}π`]),expl:`Площадь круга = πr${sq} = π · ${r}${sq} = ${r*r}π.`}
+          :{q:`A circle has a radius of ${r} centimeters. What is the circumference of the circle, in centimeters?`,...mc(`${2*r}π`,[`${r*r}π`,`${r}π`,`${4*r}π`,`${2*r*r}π`]),expl:`Длина окружности = 2πr = 2 · π · ${r} = ${2*r}π.`};});
+
+G.geo[2].push(()=>{const tr=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25],[3,4,5]]),k=ri(1,3),[a,b,c]=tr.map(v=>v*k),t=ri(0,1);
+  return t?{q:`A right triangle has legs of length ${a} and ${b}. What is the length of the hypotenuse?`,answer:c,expl:`По теореме Пифагора: ${a}${sq} + ${b}${sq} = ${a*a} + ${b*b} = ${c*c}, корень — ${c}.`}
+          :{q:`A right triangle has a hypotenuse of length ${c} and one leg of length ${a}. What is the length of the other leg?`,answer:b,expl:`По теореме Пифагора: ${c}${sq} − ${a}${sq} = ${c*c} − ${a*a} = ${b*b}, корень — ${b}.`};});
+G.geo[2].push(()=>{const a=ri(3,9),k=ri(2,4),b=ri(4,12);
+  return {q:`Triangles ABC and DEF are similar, where A corresponds to D and B corresponds to E. If AB = ${a}, DE = ${a*k}, and BC = ${b}, what is the length of EF?`,answer:b*k,
+    expl:`Коэффициент подобия: DE / AB = ${a*k} / ${a} = ${k}. EF = ${k} · BC = ${k} · ${b} = ${b*k}.`};});
+G.geo[2].push(()=>{const r=ri(2,6),h=ri(3,10);
+  return {q:`A right circular cylinder has a base radius of ${r} inches and a height of ${h} inches. What is the volume of the cylinder, in cubic inches?`,
+    ...mc(`${r*r*h}π`,[`${2*r*h}π`,`${r*h}π`,`${4*r*r*h}π`,`${r*h*h}π`,`${r*r*h*2}π`]),
+    expl:`Объём цилиндра = πr${sq}h = π · ${r*r} · ${h} = ${r*r*h}π.`};});
+G.geo[2].push(()=>{const x=ri(8,20),a=ri(2,4),c=ri(1,3),b=ri(1,30),d=180-(a+c)*x-b;
+  return {q:`Two angles form a straight line. Their measures are (${a}x + ${b})° and (${c===1?'':c}x + ${d})°. What is the value of x?`,answer:x,
+    expl:`Смежные углы в сумме дают 180°: ${a+c}x + ${b+d} = 180, ${a+c}x = ${180-b-d}, x = ${x}.`};});
+
+G.geo[3].push(()=>{const [a,b,c]=pick([[3,4,5],[5,12,13],[8,15,17],[7,24,25]]),t=ri(0,1);
+  const all=[`${b}/${c}`,`${a}/${b}`,`${b}/${a}`,`${c}/${b}`,`${c}/${a}`,`${a}/${c}`],cor=t?`${b}/${c}`:`${a}/${b}`;
+  return {q:`In right triangle ABC, angle C is the right angle and sin A = ${a}/${c}. What is the value of ${t?'cos':'tan'} A?`,...mc(cor,all.filter(s=>s!==`${a}/${c}`)),
+    expl:`sin A = противолежащий / гипотенуза, значит катет напротив A равен ${a}, гипотенуза ${c}. Второй катет: √(${c*c} − ${a*a}) = ${b}. ${t?`cos A = прилежащий / гипотенуза = ${b}/${c}`:`tan A = противолежащий / прилежащий = ${a}/${b}`}.`};});
+G.geo[3].push(()=>{const h=nz(-5,5),k=nz(-5,5),r=ri(2,9),C=h*h+k*k-r*r;
+  return {q:`${eq(`x${sq} + y${sq} ${sg(-2*h)}x ${sg(-2*k)}y ${C?sg(C)+' ':''}= 0`)}The given equation represents a circle in the xy-plane. What is the radius of the circle?`,answer:r,
+    expl:`Выделяем полные квадраты: (x ${sg(-h)})${sq} + (y ${sg(-k)})${sq} = ${h*h} + ${k*k} ${sg(-C)} = ${r*r}. Радиус: √${r*r} = ${r}.`};});
+G.geo[3].push(()=>{const th=pick([30,45,60,90,120]),k=ri(1,5),r=(180/gcd(th,180))*k,n=r*th/180,f=x=>x===1?'π':`${x}π`;
+  return {q:`A circle has a radius of ${r}. An arc of the circle is intercepted by a central angle of ${th}°. What is the length of the arc?`,...mc(n,[2*n,r,2*r,3*n,n*4],f),
+    expl:`Длина дуги = (угол / 360) · 2πr = (${th}/360) · 2π · ${r} = ${f(n)}.`};});
+
+function generate(sec,lvl){
+  for(let i=0;i<40;i++){
+    const p=pick(G[sec][lvl])();
+    if(p.choices&&(p.choices.length<4||p.answer<0))continue;
+    if(!p.choices&&!Number.isFinite(p.answer))continue;
+    p.sec=sec;p.lvl=lvl;return p;
+  }
+  throw new Error('generator failed');
+}
+/*GEN-END*/
+
+const SECS=[['all','Все секции'],['alg','Algebra'],['adv','Advanced Math'],['psda','Data Analysis'],['geo','Geometry & Trig']];
+const SEC_NAME={alg:'Algebra',adv:'Advanced Math',psda:'Problem-Solving & Data Analysis',geo:'Geometry & Trigonometry'};
+const LVLS=[[0,'Микс'],[1,'Лёгкая'],[2,'Средняя'],[3,'Сложная']];
+const LVL_NAME={1:'лёгкая',2:'средняя',3:'сложная'};
+const $=id=>document.getElementById(id);
+
+let stats={s:{alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]},streak:0};
+let pref={sec:'all',lvl:0};
+try{const s=JSON.parse(localStorage.getItem('psat10-stats'));if(s&&s.s)stats=s;const p=JSON.parse(localStorage.getItem('psat10-pref'));if(p&&p.sec)pref=p;}catch(e){}
+const save=()=>{try{localStorage.setItem('psat10-stats',JSON.stringify(stats));localStorage.setItem('psat10-pref',JSON.stringify(pref));}catch(e){}};
+
+let cur=null,chosen=null,done=false,t0=0,tick=null;
+
+function renderFilters(){
+  $('secs').innerHTML=SECS.map(([k,n])=>`<button class="chip" data-k="${k}" aria-pressed="${pref.sec===k}">${n}</button>`).join('');
+  $('lvls').innerHTML=LVLS.map(([k,n])=>`<button data-k="${k}" aria-pressed="${pref.lvl===k}">${n}</button>`).join('');
+}
+function renderStats(){
+  let c=0,t=0;for(const k in stats.s){c+=stats.s[k][0];t+=stats.s[k][1];}
+  $('sTotal').textContent=t;$('sAcc').textContent=t?Math.round(c/t*100)+'%':'—';$('sStreak').textContent=stats.streak;
+  $('rows').innerHTML=Object.keys(SEC_NAME).map(k=>{const [a,b]=stats.s[k];
+    return `<div class="row"><span>${SEC_NAME[k]}</span><span>${b?`${a} из ${b}`:'пока нет ответов'}</span><div class="bar"><div style="width:${b?a/b*100:0}%"></div></div></div>`;}).join('');
+}
+function fmtTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+function startTimer(){
+  clearInterval(tick);t0=Date.now();$('timer').textContent='0:00';$('timer').classList.remove('over');
+  tick=setInterval(()=>{const s=Math.floor((Date.now()-t0)/1000);$('timer').textContent=fmtTime(s);$('timer').classList.toggle('over',s>95);},1000);
+}
+function next(){
+  const sec=pref.sec==='all'?pick(Object.keys(SEC_NAME)):pref.sec,lvl=pref.lvl||ri(1,3);
+  cur=generate(sec,lvl);chosen=null;done=false;
+  $('tSec').textContent=SEC_NAME[sec];$('tLvl').textContent=LVL_NAME[lvl];
+  $('q').innerHTML=cur.q;$('fb').hidden=true;
+  if(cur.choices){
+    $('gridWrap').hidden=true;$('opts').hidden=false;
+    $('opts').innerHTML=cur.choices.map((c,i)=>`<button class="opt" data-i="${i}" aria-pressed="false"><i>${'ABCD'[i]}</i><span>${c}</span></button>`).join('');
+  }else{
+    $('opts').hidden=true;$('opts').innerHTML='';$('gridWrap').hidden=false;$('gridInput').value='';$('gridInput').disabled=false;
+  }
+  $('go').textContent='Проверить';$('go').disabled=true;startTimer();
+}
+function check(){
+  let ok,right;
+  if(cur.choices){ok=chosen===cur.answer;right='ABCD'[cur.answer]+') '+cur.choices[cur.answer];
+    document.querySelectorAll('.opt').forEach((b,i)=>{b.disabled=true;if(i===cur.answer)b.classList.add('ok');else if(i===chosen)b.classList.add('no');});
+  }else{
+    const v=Number($('gridInput').value.trim().replace('−','-').replace(',','.'));
+    ok=Number.isFinite(v)&&Math.abs(v-cur.answer)<1e-9;right=m(cur.answer);$('gridInput').disabled=true;
+  }
+  clearInterval(tick);done=true;
+  stats.s[cur.sec][1]++;if(ok){stats.s[cur.sec][0]++;stats.streak++;}else stats.streak=0;save();renderStats();
+  const fb=$('fb');fb.hidden=false;fb.className='fb '+(ok?'good':'bad');
+  fb.innerHTML=`<b>${ok?'Верно':'Неверно. Правильный ответ: '+right}</b><p>${cur.expl}</p>`;
+  $('go').textContent='Следующая задача';$('go').disabled=false;
+}
+$('secs').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref.sec=b.dataset.k;save();renderFilters();next();});
+$('lvls').addEventListener('click',e=>{const b=e.target.closest('button');if(!b)return;pref.lvl=+b.dataset.k;save();renderFilters();next();});
+$('opts').addEventListener('click',e=>{const b=e.target.closest('.opt');if(!b||done)return;chosen=+b.dataset.i;
+  document.querySelectorAll('.opt').forEach(o=>o.setAttribute('aria-pressed',o===b));$('go').disabled=false;});
+$('gridInput').addEventListener('input',()=>{if(!done)$('go').disabled=!$('gridInput').value.trim();});
+$('gridInput').addEventListener('keydown',e=>{if(e.key==='Enter'&&!$('go').disabled)$('go').click();});
+$('go').addEventListener('click',()=>{done?next():check();});
+$('reset').addEventListener('click',()=>{stats={s:{alg:[0,0],adv:[0,0],psda:[0,0],geo:[0,0]},streak:0};save();renderStats();});
+
+try{const tg=window.Telegram&&Telegram.WebApp;if(tg){tg.ready();tg.expand();document.documentElement.dataset.theme=tg.colorScheme==='dark'?'dark':'light';}}catch(e){}
+renderFilters();renderStats();next();
+</script>
+</body>
+</html>
